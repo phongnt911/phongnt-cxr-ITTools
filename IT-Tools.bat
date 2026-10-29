@@ -13,6 +13,15 @@ echo.
 :: -- Auto-detect Python interpreter --
 set PYTHON_EXE=
 
+if exist "%~dp0..\.venv\Scripts\python.exe" (
+    set "PYTHON_EXE=%~dp0..\.venv\Scripts\python.exe"
+    goto :check_deps
+)
+if exist "%~dp0.venv\Scripts\python.exe" (
+    set "PYTHON_EXE=%~dp0.venv\Scripts\python.exe"
+    goto :check_deps
+)
+
 :: 1. Try 'py' launcher
 py --version >nul 2>&1
 if not errorlevel 1 (

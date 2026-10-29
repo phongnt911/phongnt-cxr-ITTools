@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 VERSION = '26.09.01'
 RUNTIME_URL = 'https://aka.ms/windowsappsdk/2.0/2.0.1/windowsappruntimeinstall-x64.exe'
@@ -32,7 +33,14 @@ def protect_host_runtime():
     try:
         with os.fdopen(fd, 'w', encoding='utf-8') as stream:
             json.dump(settings, stream, ensure_ascii=False, indent=2)
-        os.replace(pending, settings_path)
+        for attempt in range(5):
+            try:
+                os.replace(pending, settings_path)
+                break
+            except (PermissionError, OSError):
+                if attempt == 4:
+                    raise
+                time.sleep(0.05)
     finally:
         if os.path.exists(pending):
             os.unlink(pending)

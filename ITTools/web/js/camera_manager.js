@@ -31,9 +31,9 @@ Object.assign(AppController.prototype, {
 
     // Mock data fallback
     this.currentCameras = [
-      { id: "cam-01", name: "Khu Vực Soi Chiếu An Ninh A", ip: "10.90.39.201", port_web: 80, port_rtsp: 554, location: "Tầng 1 - Ga Đi Quốc Nội", notes: "Hikvision 4MP" },
-      { id: "cam-02", name: "Băng Chuyền Trả Hành Lý 1", ip: "10.90.39.202", port_web: 80, port_rtsp: 554, location: "Tầng Trệt - Ga Đến", notes: "Dahua IR" },
-      { id: "cam-03", name: "Cửa Ra Tàu Bay (Gate 1)", ip: "10.90.39.203", port_web: 80, port_rtsp: 554, location: "Phòng Chờ Cách Ly", notes: "Uniview Dome" }
+      { id: "cam-01", name: "Kho Hang - Ban Can", ip: "172.16.112.149", port_web: 80, port_rtsp: 554, location: "Phía trên bàn cân kho hàng", device_type: "DS-2CD2955FWD-I", mac: "ac-cb-51-34-e2-99" },
+      { id: "cam-02", name: "DH SAGS-CXR", ip: "172.16.112.150", port_web: 80, port_rtsp: 554, location: "Phòng Điều hành", device_type: "DS-2CD2420F-IW", mac: "a4-14-37-c2-d3-90" },
+      { id: "cam-03", name: "LNF QN STORE", ip: "172.16.112.151", port_web: 80, port_rtsp: 554, location: "Kho LNF Quốc nội", device_type: "DS-2CD1023G2-LIUF", mac: "04-03-12-cd-2e-f4" }
     ];
     this.renderCameraTable(this.currentCameras);
     this.updateCameraSummary();
@@ -66,8 +66,15 @@ Object.assign(AppController.prototype, {
         <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
           <td class="text-center" style="padding: 10px; font-weight: 600; color: #64748b;">${idx + 1}</td>
           <td style="padding: 10px;">
-            <div style="font-weight: 700; color: #1e293b; font-size: 13px;">${this.escapeHtml(cam.name)}</div>
-            <div style="font-size: 11px; color: #64748b;">📍 ${this.escapeHtml(cam.location || 'Chưa đặt vị trí')} ${cam.notes ? `• ${this.escapeHtml(cam.notes)}` : ''}</div>
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <span style="font-weight: 700; color: #1e293b; font-size: 13px;">${this.escapeHtml(cam.name)}</span>
+              ${cam.device_type ? `<span class="badge" style="background: #e0f2fe; color: #0369a1; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px;">${this.escapeHtml(cam.device_type)}</span>` : ''}
+            </div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+              <span>📍 ${this.escapeHtml(cam.location || 'Chưa đặt vị trí')}</span>
+              ${cam.mac ? `<span style="margin-left: 6px; font-family: monospace; color: #475569;">[MAC: ${this.escapeHtml(cam.mac)}]</span>` : ''}
+              ${cam.notes && !cam.mac ? `• ${this.escapeHtml(cam.notes)}` : ''}
+            </div>
           </td>
           <td style="padding: 10px; font-family: monospace; font-weight: 700; color: #0284c7; font-size: 13px;">
             ${this.escapeHtml(cam.ip)}
@@ -293,7 +300,7 @@ Object.assign(AppController.prototype, {
 
     if (!subnetInput || !resultsContainer) return;
 
-    const subnet = subnetInput.value.trim() || "10.90.39";
+    const subnet = subnetInput.value.trim() || "172.16.112";
     const start = parseInt(startInput.value) || 1;
     const end = parseInt(endInput.value) || 50;
 
@@ -388,3 +395,4 @@ Object.assign(AppController.prototype, {
     }
   }
 });
+

@@ -77,6 +77,29 @@ class CameraManagerTests(unittest.TestCase):
         self.assertIn("is_online", results[0])
         self.assertIn("is_online", results[1])
 
+    def test_save_cameras_preserves_hardware_info(self):
+        sample = [
+            {
+                "id": "cam-hw-1",
+                "name": "DH SAGS-CXR",
+                "ip": "172.16.112.150",
+                "port_web": 80,
+                "port_rtsp": 554,
+                "location": "Phòng Điều hành",
+                "device_type": "DS-2CD2420F-IW",
+                "serial": "DS-2CD2420F-IW20161026AAWR666404905",
+                "mac": "a4-14-37-c2-d3-90",
+                "notes": "Test hardware notes"
+            }
+        ]
+        res = camera_manager.save_cameras(sample, self.config_path)
+        self.assertTrue(res.get("success"))
+        loaded = camera_manager.load_cameras(self.config_path)
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0]["device_type"], "DS-2CD2420F-IW")
+        self.assertEqual(loaded[0]["serial"], "DS-2CD2420F-IW20161026AAWR666404905")
+        self.assertEqual(loaded[0]["mac"], "a4-14-37-c2-d3-90")
+
     def test_scan_camera_range_invalid_subnet(self):
         res = camera_manager.scan_camera_range("invalid.ip.range", 1, 5)
         self.assertFalse(res.get("success"))
@@ -84,3 +107,4 @@ class CameraManagerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
