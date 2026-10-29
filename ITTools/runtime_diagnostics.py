@@ -42,7 +42,7 @@ def run(report_path):
                      'auto_shutdown', 'backup_driver', 'currency', 'datetime_tool', 'desktop_icon',
                      'firewall', 'folder_size', 'hosts_editor', 'office_opt', 'other_tools',
                      'sendto_editor', 'server_tools', 'services_manager', 'wincheck', 'win_update',
-                     'classic_menu', 'zoom_screen', 'zoom_screen_gui', 'fluent_cleaner']:
+                     'classic_menu', 'zoom_screen', 'zoom_screen_gui', 'fluent_cleaner', 'camera_manager', 'rustdesk_manager']:
             check('modules.' + name, lambda name=name: importlib.import_module('modules.' + name).__file__)
         from web_api import Api
         api = Api()
@@ -58,6 +58,8 @@ def run(report_path):
             ('get_system_drives', list, ()),
             ('get_datetime_info', dict, ('timezone',)),
             ('get_browser_backup_info', dict, ('browsers', 'history')),
+            ('get_camera_list', dict, ('cameras',)),
+            ('get_rustdesk_info', dict, ('data',)),
         ]:
             check('api.' + method, lambda method=method, expected=expected, keys=keys:
                   summarize_api_result(getattr(api, method)(), expected, keys))

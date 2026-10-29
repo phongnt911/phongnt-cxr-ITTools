@@ -6492,3 +6492,90 @@ $res | ConvertTo-Json -Depth 3 -Compress
     def open_fluent_cleaner(self):
         from modules import fluent_cleaner
         return fluent_cleaner.launch()
+
+
+    # ==================== CAMERA IP MANAGER ====================
+    def get_camera_list(self):
+        try:
+            from modules import camera_manager
+            cams = camera_manager.load_cameras()
+            return {"success": True, "cameras": cams}
+        except Exception as ex:
+            self.log("ERROR", f"Lỗi đọc danh sách camera: {ex}")
+            return {"success": False, "message": str(ex), "cameras": []}
+
+    def save_camera_list(self, cameras):
+        try:
+            from modules import camera_manager
+            res = camera_manager.save_cameras(cameras)
+            self.log("INFO", f"Camera: {res.get('message', '')}")
+            return res
+        except Exception as ex:
+            self.log("ERROR", f"Lỗi lưu danh sách camera: {ex}")
+            return {"success": False, "message": str(ex)}
+
+    def ping_cameras(self):
+        try:
+            from modules import camera_manager
+            results = camera_manager.ping_all_cameras()
+            return {"success": True, "results": results}
+        except Exception as ex:
+            self.log("ERROR", f"Lỗi kiểm tra trạng thái camera: {ex}")
+            return {"success": False, "message": str(ex), "results": []}
+
+    def scan_cameras_lan(self, subnet_or_range, start=1, end=50):
+        try:
+            from modules import camera_manager
+            res = camera_manager.scan_camera_range(subnet_or_range, int(start), int(end))
+            self.log("INFO", f"Quét camera dải {subnet_or_range}: tìm thấy {res.get('count', 0)} thiết bị")
+            return res
+        except Exception as ex:
+            self.log("ERROR", f"Lỗi quét dải camera: {ex}")
+            return {"success": False, "message": str(ex), "devices": []}
+
+    def open_camera_web(self, ip, port=80):
+        try:
+            from modules import camera_manager
+            return camera_manager.open_camera_web(ip, int(port))
+        except Exception as ex:
+            self.log("ERROR", f"Lỗi mở web camera {ip}:{port}: {ex}")
+            return {"success": False, "message": str(ex)}
+
+    # ==================== RUSTDESK DIRECT IP & WOL ====================
+    def get_rustdesk_info(self):
+        try:
+            from modules import rustdesk_manager
+            return {"success": True, "data": rustdesk_manager.get_rustdesk_info()}
+        except Exception as ex:
+            self.log("ERROR", f"Lỗi lấy thông tin RustDesk: {ex}")
+            return {"success": False, "message": str(ex), "data": {}}
+
+    def connect_rustdesk_ip(self, target_ip):
+        try:
+            from modules import rustdesk_manager
+            res = rustdesk_manager.connect_direct_ip(target_ip)
+            self.log("INFO", f"RustDesk kết nối: {res.get('message', '')}")
+            return res
+        except Exception as ex:
+            self.log("ERROR", f"Lỗi kết nối RustDesk {target_ip}: {ex}")
+            return {"success": False, "message": str(ex)}
+
+    def restart_rustdesk(self):
+        try:
+            from modules import rustdesk_manager
+            res = rustdesk_manager.restart_rustdesk_service()
+            self.log("INFO", f"RustDesk Restart Service: {res.get('message', '')}")
+            return res
+        except Exception as ex:
+            self.log("ERROR", f"Lỗi khởi động lại RustDesk: {ex}")
+            return {"success": False, "message": str(ex)}
+
+    def wake_on_lan(self, mac_address, broadcast_ip="255.255.255.255"):
+        try:
+            from modules import rustdesk_manager
+            res = rustdesk_manager.send_wake_on_lan(mac_address, broadcast_ip)
+            self.log("INFO", f"Wake-on-LAN: {res.get('message', '')}")
+            return res
+        except Exception as ex:
+            self.log("ERROR", f"Lỗi Wake-on-LAN {mac_address}: {ex}")
+            return {"success": False, "message": str(ex)}

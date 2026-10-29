@@ -1,0 +1,38 @@
+[
+  {
+    "id": "cam-01",
+    "name": "Khu Vực Soi Chiếu An Ninh A",
+    "ip": "10.90.39.201",
+    "port_web": 80,
+    "port_rtsp": 554,
+    "location": "Tầng 1 - Ga Đi Quốc Nội",
+    "notes": "Hikvision 4MP DarkFighter"
+  },
+  {
+    "id": "cam-02",
+    "name": "Băng Chuyền Trả Hành Lý 1",
+    "ip": "10.90.39.202",
+    "port_web": 80,
+    "port_rtsp": 554,
+    "location": "Tầng Trệt - Ga Đến",
+    "notes": "Dahua WizSense IR"
+  },
+  {
+    "id": "cam-03",
+    "name": "Cửa Ra Tàu Bay (Boarding Gate 1)",
+    "ip": "10.90.39.203",
+    "port_web": 80,
+    "port_rtsp": 554,
+    "location": "Phòng Chờ Cách Ly",
+    "notes": "Uniview Dome 2MP"
+  },
+  {
+    "id": "cam-04",
+    "name": "Quầy Thủ Tục Check-in 01-05",
+    "ip": "10.90.39.204",
+    "port_web": 80,
+    "port_rtsp": 554,
+    "location": "Sảnh Công Cộng Ga Đi",
+    "notes": "KBVision Dome HD"
+  }
+]

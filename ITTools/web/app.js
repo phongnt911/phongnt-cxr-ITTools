@@ -113,6 +113,11 @@ class AppController {
         case "tab-server-tools":
           if (typeof this.loadServerTools === 'function') await this.loadServerTools();
           if (typeof this.loadNicTeams === 'function') await this.loadNicTeams();
+          if (typeof this.loadRustDeskStatus === 'function') await this.loadRustDeskStatus();
+          break;
+
+        case "tab-camera-manager":
+          if (typeof this.loadCameraList === 'function') await this.loadCameraList();
           break;
 
         case "tab-zoom-screen":

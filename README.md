@@ -56,6 +56,15 @@ IT Tool LTT 2026
 │   └── 🔒 Tắt BitLocker & EFS (BitLocker & Drive Encryption)
 │
 ├── 🖨️ 2. MẠNG & MÁY IN
+│   ├── 📹 Camera IP Manager (Quản Lý & Chẩn Đoán Camera IP CCTV)
+│   │   ├── Bảng danh sách Camera cố định theo vị trí lắp đặt
+│   │   ├── Ping Watchdog hàng loạt: Xanh (Online) / Đỏ (Mất tín hiệu/Nguồn)
+│   │   ├── Nút mở nhanh Web quản trị Camera & Test luồng RTSP (Port 554)
+│   │   └── Dò tìm Camera mới trong dải LAN (Scan Port 554, 80, 8000, 37777, ONVIF)
+│   ├── 🦀 RustDesk Direct IP & Wake-on-LAN (Hỗ Trợ Từ Xa LAN Nội Bộ)
+│   │   ├── Kết nối điều khiển từ xa trực tiếp qua IP tĩnh nội bộ
+│   │   ├── Giám sát và khởi động lại Windows Service 'rustdesk' khi bị treo
+│   │   └── Wake-on-LAN (WoL): Phát gói Magic Packet bật máy tính từ xa qua địa chỉ MAC
 │   ├── 🖨️ Fix Máy In - Share LAN (Chuyên Trị Lỗi In Mạng LAN & USB)
 │   │   ├── ★ ONE CLICK FIX TẤT CẢ LỖI MÁY IN (Quy Trình 4 Bước Chuẩn)
 │   │   ├── Sửa Lỗi 0x0000011b, 0x00000709, 0x0000007c, 0x00000bcb
