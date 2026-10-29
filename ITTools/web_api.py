@@ -6550,15 +6550,18 @@ $res | ConvertTo-Json -Depth 3 -Compress
             self.log("ERROR", f"Lỗi lấy thông tin RustDesk: {ex}")
             return {"success": False, "message": str(ex), "data": {}}
 
-    def connect_rustdesk_ip(self, target_ip):
+    def connect_rustdesk_ip(self, target_ip, password=None):
         try:
             from modules import rustdesk_manager
-            res = rustdesk_manager.connect_direct_ip(target_ip)
+            res = rustdesk_manager.connect_direct_ip(target_ip, password=password)
             self.log("INFO", f"RustDesk kết nối: {res.get('message', '')}")
             return res
         except Exception as ex:
             self.log("ERROR", f"Lỗi kết nối RustDesk {target_ip}: {ex}")
             return {"success": False, "message": str(ex)}
+
+    def connect_rustdesk(self, target_ip, password=None):
+        return self.connect_rustdesk_ip(target_ip, password=password)
 
     def restart_rustdesk(self):
         try:

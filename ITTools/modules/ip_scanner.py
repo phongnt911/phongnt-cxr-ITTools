@@ -746,25 +746,131 @@ def get_hostname_mdns(ip, timeout=1):
     return ''
 
 
+_KNOWN_CAMERAS_CACHE = None
+
+def get_known_device_name(ip):
+    """Check if IP is in the local SAGS-CXR camera database."""
+    global _KNOWN_CAMERAS_CACHE
+    if _KNOWN_CAMERAS_CACHE is None:
+        _KNOWN_CAMERAS_CACHE = {}
+        try:
+            import json
+            from pathlib import Path
+            cfg_path = Path(__file__).resolve().parents[1] / "config" / "cameras.json"
+            if cfg_path.exists():
+                data = json.loads(cfg_path.read_text(encoding="utf-8"))
+                for c in data:
+                    c_ip = c.get("ip")
+                    if c_ip:
+                        name = c.get("name", "")
+                        dev = c.get("device_type", "")
+                        _KNOWN_CAMERAS_CACHE[c_ip] = f"{name} ({dev})" if dev else name
+        except Exception:
+            _KNOWN_CAMERAS_CACHE = {}
+    return _KNOWN_CAMERAS_CACHE.get(ip, "")
+
+
+def get_hostname_netbios_socket(ip, timeout=0.4):
+    """Query NetBIOS Node Status directly over UDP 137 without spawning nbtstat.exe."""
+    import struct
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.settimeout(timeout)
+        query = (
+            b"\x12\x34\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00"
+            b"\x20CKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\x00"
+            b"\x00\x21\x00\x01"
+        )
+        sock.sendto(query, (ip, 137))
+        data, _ = sock.recvfrom(1024)
+        sock.close()
+        if len(data) > 56:
+            num_names = data[56]
+            offset = 57
+            for _ in range(num_names):
+                if offset + 18 > len(data):
+                    break
+                name_bytes = data[offset:offset+15]
+                name_type = data[offset+15]
+                flags = struct.unpack(">H", data[offset+16:offset+18])[0]
+                offset += 18
+                is_group = bool(flags & 0x8000)
+                if name_type == 0x00 and not is_group:
+                    name = name_bytes.decode("ascii", errors="ignore").strip()
+                    if name and name != "*" and name.upper() not in ("NAME", "REGISTERED"):
+                        return name
+    except Exception:
+        pass
+    return ""
+
+
+def get_http_title(ip, timeout=0.5):
+    """Attempt to extract device name/model from HTTP/HTTPS page title (Printers, Routers, Cameras)."""
+    import urllib.request
+    import re
+    import ssl
+    for scheme in ("http", "https"):
+        try:
+            url = f"{scheme}://{ip}"
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+            with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
+                server_hdr = resp.headers.get("Server", "")
+                content = resp.read(2048).decode("utf-8", errors="ignore")
+                match = re.search(r"<title[^>]*>(.*?)</title>", content, re.IGNORECASE | re.DOTALL)
+                if match:
+                    title = match.group(1).strip()
+                    if title and title.lower() not in ("login", "index", "home", "document", "404 not found", "error"):
+                        return title
+                if server_hdr and server_hdr.lower() not in ("apache", "nginx", "microsoft-iis/10.0"):
+                    return f"Web: {server_hdr}"
+        except Exception:
+            pass
+    return ""
+
+
 def get_hostname_multi(ip, timeout=1):
     """Try multiple hostname resolution methods in order of speed:
-    1. DNS reverse lookup (fast, works for routers + Windows with PTR)
-    2. NetBIOS name (nbtstat, Windows machines on LAN)
-    3. mDNS/Bonjour (Apple/Linux)
+    1. Known fleet / camera database lookup
+    2. DNS reverse lookup (PTR record)
+    3. Direct NetBIOS UDP socket query (port 137)
+    4. NetBIOS nbtstat command (Windows fallback)
+    5. mDNS/Bonjour (Apple/Linux)
+    6. HTTP/HTTPS Web Title (printers, switches, web devices)
     Returns best available name, empty string if all fail."""
-    # Method 1: DNS
+    # Method 1: Known device DB (cameras, static airport equipment)
+    known = get_known_device_name(ip)
+    if known:
+        return known
+
+    # Method 2: DNS reverse lookup
     name = get_hostname(ip, timeout=timeout)
     if name:
         return name
-    # Method 2: NetBIOS (Windows)
-    name = get_hostname_netbios(ip, timeout=2)
+
+    # Method 3: Direct NetBIOS socket (fast, no subprocess)
+    name = get_hostname_netbios_socket(ip, timeout=0.4)
     if name:
         return name
-    # Method 3: mDNS
-    name = get_hostname_mdns(ip, timeout=1)
+
+    # Method 4: NetBIOS nbtstat CLI
+    name = get_hostname_netbios(ip, timeout=1.5)
     if name:
         return name
-    return ''
+
+    # Method 5: mDNS
+    name = get_hostname_mdns(ip, timeout=0.8)
+    if name:
+        return name
+
+    # Method 6: HTTP Web title (printers, embedded web devices)
+    name = get_http_title(ip, timeout=0.5)
+    if name:
+        return name
+
+    return ""''
 
 
 # ── STANDALONE BACKEND API FUNCTIONS ─────────────────────────────────────

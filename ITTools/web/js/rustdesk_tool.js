@@ -119,6 +119,30 @@ Object.assign(AppController.prototype, {
   },
 
   /**
+   * Kết nối nhanh RustDesk tới một địa chỉ IP bất kỳ (dùng cho IP Scanner, Network Tools...)
+   */
+  async connectRustdesk(ip, password = null) {
+    if (!ip) return;
+    this.addLog("info", `Đang khởi chạy RustDesk kết nối tới IP: ${ip}...`);
+    try {
+      if (window.pywebview && window.pywebview.api && window.pywebview.api.connect_rustdesk_ip) {
+        const res = await window.pywebview.api.connect_rustdesk_ip(ip, password);
+        if (res && res.success) {
+          this.addLog("success", res.message);
+          if (typeof this.showToast === 'function') this.showToast("success", res.message);
+        } else {
+          this.addLog("error", res ? res.message : "Không thể khởi động kết nối RustDesk.");
+          if (typeof this.showToast === 'function') this.showToast("error", res ? res.message : "Lỗi kết nối RustDesk");
+        }
+      } else {
+        alert(`Đang mở kết nối RustDesk tới ${ip}`);
+      }
+    } catch (err) {
+      this.addLog("error", `Lỗi kết nối RustDesk: ${err.message}`);
+    }
+  },
+
+  /**
    * Khởi động lại Windows Service của RustDesk khi treo
    */
   async restartRustDeskService() {

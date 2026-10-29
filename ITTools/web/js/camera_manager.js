@@ -8,10 +8,35 @@ Object.assign(AppController.prototype, {
 
   /**
    * Tải danh sách Camera từ cấu hình
+   * @param {boolean} force - Nếu true, ép buộc tải lại từ file cấu hình trên đĩa
    */
-  async loadCameraList() {
+  async loadCameraList(force = false) {
     const tbody = document.getElementById("camera-table-body");
     if (!tbody) return;
+
+    // Giữ nguyên trạng thái kiểm tra (online/offline/latency) khi người dùng chuyển qua lại các tab
+    if (!force && this.currentCameras && this.currentCameras.length > 0) {
+      this.renderCameraTable(this.currentCameras);
+      this.updateCameraSummary();
+      return;
+    }
+
+    // Bảo lưu trạng thái kiểm tra đã có trong phiên làm việc
+    const prevStatusMap = {};
+    if (Array.isArray(this.currentCameras)) {
+      this.currentCameras.forEach(cam => {
+        if (cam.checked) {
+          prevStatusMap[cam.id || cam.ip] = {
+            checked: true,
+            is_online: cam.is_online,
+            latency_ms: cam.latency_ms,
+            rtsp_open: cam.rtsp_open,
+            web_open: cam.web_open,
+            last_checked: cam.last_checked
+          };
+        }
+      });
+    }
 
     tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm"></span> Đang nạp danh sách Camera IP...</td></tr>`;
 
@@ -19,7 +44,13 @@ Object.assign(AppController.prototype, {
       if (window.pywebview && window.pywebview.api && window.pywebview.api.get_camera_list) {
         const res = await window.pywebview.api.get_camera_list();
         if (res && res.success && Array.isArray(res.cameras)) {
-          this.currentCameras = res.cameras;
+          this.currentCameras = res.cameras.map(cam => {
+            const key = cam.id || cam.ip;
+            if (prevStatusMap[key]) {
+              return { ...cam, ...prevStatusMap[key] };
+            }
+            return cam;
+          });
           this.renderCameraTable(this.currentCameras);
           this.updateCameraSummary();
           return;

@@ -1153,6 +1153,7 @@ Object.assign(AppController.prototype, {
         actions.appendChild(element);
       };
       button('⚡ Quét Port', () => this.openHostPortScanModal(item.ip));
+      button('🦀 RustDesk', () => this.connectRustdesk(item.ip));
       button('📋 IP', () => this.copyToClipboard(item.ip, 'IP'));
       if (ports.includes(3389)) button('🖥️ RDP', () => this.connectRdp(item.ip));
       if (ports.includes(445)) button('📁 Share', () => this.openSmbShare(item.ip));

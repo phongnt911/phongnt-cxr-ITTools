@@ -152,12 +152,28 @@ def get_rustdesk_info() -> dict:
     }
 
 
-def connect_direct_ip(target_ip: str) -> dict:
+def connect_direct_ip(target_ip: str, password: str = None) -> dict:
     """Khởi chạy RustDesk kết nối thẳng tới IP tĩnh nội bộ của máy cần hỗ trợ."""
-    try:
-        safe_ip = validate_host(target_ip)
-    except ValueError as exc:
-        return {"success": False, "message": f"Địa chỉ IP không hợp lệ: {exc}"}
+    raw = str(target_ip or "").strip()
+    if not raw:
+        return {"success": False, "message": "Vui lòng nhập địa chỉ IP máy cần kết nối."}
+
+    full_target = raw
+    if ":" in raw:
+        parts = raw.split(":", 1)
+        try:
+            safe_host = validate_host(parts[0])
+            port = int(parts[1])
+            if not 1 <= port <= 65535:
+                return {"success": False, "message": "Cổng kết nối không hợp lệ (1-65535)."}
+            full_target = f"{safe_host}:{port}"
+        except (ValueError, TypeError) as exc:
+            return {"success": False, "message": f"Địa chỉ IP không hợp lệ: {exc}"}
+    else:
+        try:
+            full_target = validate_host(raw)
+        except ValueError as exc:
+            return {"success": False, "message": f"Địa chỉ IP không hợp lệ: {exc}"}
 
     exe = find_rustdesk_executable()
     if not exe:
@@ -167,11 +183,16 @@ def connect_direct_ip(target_ip: str) -> dict:
         }
 
     try:
-        # Gọi rustdesk.exe <safe_ip>
-        subprocess.Popen([exe, safe_ip], creationflags=CREATE_NO_WINDOW)
+        # Cú pháp chuẩn RustDesk: rustdesk.exe --connect <IP_HOAC_ID>
+        # Không dùng CREATE_NO_WINDOW để cửa sổ GUI tương tác của RustDesk hiển thị mượt mà trên desktop
+        cmd = [exe, "--connect", full_target]
+        if password and isinstance(password, str) and password.strip():
+            cmd.extend(["--password", password.strip()])
+
+        subprocess.Popen(cmd)
         return {
             "success": True,
-            "message": f"Đã khởi động RustDesk kết nối trực tiếp tới IP: {safe_ip}"
+            "message": f"Đã khởi động RustDesk kết nối trực tiếp tới: {full_target}"
         }
     except Exception as exc:
         return {"success": False, "message": f"Lỗi khởi động RustDesk: {exc}"}
