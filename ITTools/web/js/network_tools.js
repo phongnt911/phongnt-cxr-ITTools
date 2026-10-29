@@ -952,6 +952,14 @@ Object.assign(AppController.prototype, {
       const val = "172.16.1.x";
       if (smartEl) smartEl.value = val;
       this.onSmartIpInputChanged(val);
+    } else if (preset === '172.16.112') {
+      const val = "172.16.112.x";
+      if (smartEl) smartEl.value = val;
+      this.onSmartIpInputChanged(val);
+    } else if (preset === '192.168.102') {
+      const val = "192.168.102.x";
+      if (smartEl) smartEl.value = val;
+      this.onSmartIpInputChanged(val);
     }
   },
 
@@ -1122,14 +1130,82 @@ Object.assign(AppController.prototype, {
     }
   },
 
-  renderIpScanResults(results) {
+  toggleIpScanPortsBox() {
+    const box = document.getElementById("ipscan-ports-box");
+    const btn = document.getElementById("btn-toggle-ports-box");
+    if (!box) return;
+    const isHidden = box.style.display === "none";
+    box.style.display = isHidden ? "block" : "none";
+    if (btn) {
+      btn.innerHTML = isHidden ? "🔌 Thu gọn tùy chọn cổng ▲" : "🔌 Tùy chọn cổng (12 Ports) ▼";
+    }
+  },
+
+  filterIpScanResults() {
+    const searchInput = document.getElementById("ipscan-search-input");
+    const filterPort = document.getElementById("ipscan-filter-port")?.value || "all";
+    const query = (searchInput ? searchInput.value : "").trim().toLowerCase();
+
+    if (!this.lastScanResults || this.lastScanResults.length === 0) {
+      const filterInfo = document.getElementById("ipscan-filter-info");
+      if (filterInfo) filterInfo.textContent = "0 thiết bị";
+      return;
+    }
+
+    const filtered = this.lastScanResults.filter(item => {
+      const ports = (item.open_ports || []).map(Number);
+      if (filterPort === "web" && !ports.includes(80) && !ports.includes(443)) return false;
+      if (filterPort === "rdp" && !ports.includes(3389)) return false;
+      if (filterPort === "smb" && !ports.includes(445)) return false;
+
+      if (!query) return true;
+      const ip = (item.ip || "").toLowerCase();
+      const host = (item.hostname || "").toLowerCase();
+      const mac = (item.mac || "").toLowerCase();
+      const vendor = (item.vendor || item.brand || "").toLowerCase();
+      const devType = (item.device_type || "").toLowerCase();
+      const portStr = ports.join(" ");
+
+      return ip.includes(query) || host.includes(query) || mac.includes(query) || vendor.includes(query) || devType.includes(query) || portStr.includes(query);
+    });
+
+    const filterInfo = document.getElementById("ipscan-filter-info");
+    if (filterInfo) {
+      if (query || filterPort !== "all") {
+        filterInfo.textContent = `Hiển thị ${filtered.length}/${this.lastScanResults.length} thiết bị`;
+      } else {
+        filterInfo.textContent = `Tổng: ${this.lastScanResults.length} thiết bị`;
+      }
+    }
+
+    this.renderIpScanResults(filtered, false);
+  },
+
+  clearIpScanSearch() {
+    const searchInput = document.getElementById("ipscan-search-input");
+    if (searchInput) {
+      searchInput.value = "";
+      searchInput.focus();
+    }
+    const filterPort = document.getElementById("ipscan-filter-port");
+    if (filterPort) filterPort.value = "all";
+    this.filterIpScanResults();
+  },
+
+  renderIpScanResults(results, updateFilterBadge = true) {
     const body = document.getElementById('ipscan-results-body');
     if (!body) return;
     body.replaceChildren();
+    if (updateFilterBadge) {
+      const filterInfo = document.getElementById("ipscan-filter-info");
+      if (filterInfo) {
+        filterInfo.textContent = `${results?.length || 0} thiết bị`;
+      }
+    }
     if (!results?.length) {
       const cell = body.insertRow().insertCell();
       cell.colSpan = 8;
-      cell.textContent = 'Không tìm thấy thiết bị nào phản hồi.';
+      cell.textContent = 'Không tìm thấy thiết bị nào phù hợp.';
       return;
     }
     results.forEach((item, index) => {

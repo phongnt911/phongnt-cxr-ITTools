@@ -857,7 +857,7 @@
 
                 <!-- Table Content -->
                 <div class="table-wrapper flex-grow group-user-table-scroll"
-                  style="max-height: 480px; overflow-y: auto;">
+                  style="max-height: 580px; overflow-y: auto;">
                   <!-- View 1: Groups Table -->
                   <table class="custom-table" id="groups-main-table">
                     <thead>
@@ -3974,198 +3974,150 @@
               </div>
             </div>
 
-            <!-- Configuration Controls -->
-            <div
-              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-top: 10px; margin-bottom: 16px;">
-
-                <!-- Primary Smart Input Row -->
-                <div style="display: grid; grid-template-columns: 1fr auto 140px; gap: 12px; align-items: flex-end; margin-bottom: 10px;">
-                  <div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                      <label class="form-label text-xs font-bold" style="color: #1e293b; margin: 0; display: flex; align-items: center; gap: 6px;">
-                        <span>🎯</span>
-                        <span>Dải Mạng Hoặc IP Cần Quét (Smart Range):</span>
-                      </label>
-                      <button type="button" class="btn btn-xs btn-slate-light" id="btn-toggle-ip-advanced" onclick="app.toggleIpScanAdvancedMode()" style="font-size: 11px; padding: 2px 8px;" title="Mở rộng / Thu gọn các ô nhập Từ IP - Đến IP chi tiết">
-                        ⚙️ Chi Tiết Từ IP - Đến IP
-                      </button>
-                    </div>
-                    <div style="position: relative;">
-                      <input type="text" id="ipscan-smart-input" class="form-control"
-                        placeholder="VD: 10.90.39.x hoặc 192.168.1.1-254 hoặc 192.168.1.0/24 hoặc 192.168.1.100..."
-                        style="width: 100%; padding: 9px 12px; padding-left: 36px; border: 1.5px solid #0284c7; border-radius: 8px; font-size: 13.5px; font-weight: 600; background: #ffffff; color: #0f172a; box-shadow: 0 1px 3px rgba(2, 132, 199, 0.1);"
-                        oninput="app.onSmartIpInputChanged(this.value)">
-                      <span style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; color: #0284c7;">🔍</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <button type="button" class="btn btn-action-accent text-white" onclick="app.applyIpScanPreset('local')" id="btn-autodetect-ip"
-                      style="padding: 9px 14px; font-size: 12.5px; font-weight: 700; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-radius: 8px; white-space: nowrap; height: 39px; display: flex; align-items: center; gap: 6px;"
-                      title="Tự động nhận diện mạng LAN máy đang kết nối">
-                      <span>🎯</span> Lấy IP Mạng Này
-                    </button>
-                  </div>
-
-                  <div>
-                    <label class="form-label text-xs font-semibold" style="display: block; color: #475569; margin-bottom: 6px;">Số Luồng (Threads):</label>
-                    <select id="ipscan-input-threads" class="form-control"
-                      style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12.5px; font-weight: 600; height: 39px;">
-                      <option value="20">20 Threads</option>
-                      <option value="50" selected>50 Threads (Khuyên dùng)</option>
-                      <option value="100">100 Threads (Siêu nhanh)</option>
-                    </select>
-                  </div>
+            <!-- Compact Scan Controls Container -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; margin-top: 6px; margin-bottom: 10px;">
+              <!-- Main Toolbar Row: Smart Input + Presets + Threads + Start Button -->
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <!-- Smart Input -->
+                <div style="position: relative; flex: 1; min-width: 220px;">
+                  <input type="text" id="ipscan-smart-input" class="form-control form-control-sm"
+                    placeholder="VD: 172.16.112.x hoặc 192.168.102.x hoặc 192.168.1.1-254..."
+                    style="width: 100%; padding: 7px 10px 7px 30px; border: 1.5px solid #0284c7; border-radius: 6px; font-size: 13px; font-weight: 600; background: #ffffff; color: #0f172a;"
+                    oninput="app.onSmartIpInputChanged(this.value)">
+                  <span style="position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-size: 13px; pointer-events: none; color: #0284c7;">🎯</span>
                 </div>
 
-                <!-- Scope Preview & Live Status Banner -->
-                <div id="ipscan-scope-banner"
-                  style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 7px 12px; margin-bottom: 12px; font-size: 12px; color: #0369a1; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
-                  <div style="display: flex; align-items: center; gap: 7px;">
-                    <span style="font-size: 14px;">⚡</span>
-                    <span id="ipscan-scope-text" style="font-weight: 600;">Đang chuẩn bị dải mạng...</span>
-                  </div>
-                  <div id="ipscan-detected-lan-badge" style="font-size: 11px; background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 6px; font-weight: 700;">
-                    Mạng máy: Đang nhận diện...
-                  </div>
-                </div>
+                <!-- Fast Presets -->
+                <button type="button" class="btn btn-sky-outline btn-sm" onclick="app.applyIpScanPreset('local')" id="btn-autodetect-ip" style="font-weight: 700; white-space: nowrap; height: 32px;" title="Tự động nhận diện mạng LAN máy đang kết nối">
+                  🏠 Mạng Máy
+                </button>
+                <button type="button" class="btn btn-slate-light btn-sm" onclick="app.applyIpScanPreset('172.16.112')" style="font-size: 11.5px; white-space: nowrap; height: 32px;" title="Dải mạng Camera & PVHK CXR">
+                  172.16.112.x
+                </button>
+                <button type="button" class="btn btn-slate-light btn-sm" onclick="app.applyIpScanPreset('192.168.102')" style="font-size: 11.5px; white-space: nowrap; height: 32px;" title="Dải mạng PVHL & IT CXR">
+                  192.168.102.x
+                </button>
 
-                <!-- Collapsible Advanced Range Box (Keeps #ipscan-input-subnet, #ipscan-input-start, #ipscan-input-end for full compatibility) -->
-                <div id="ipscan-advanced-range-box" style="display: none; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px;">
-                  <div style="font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase;">
-                    ⚙️ CẤU HÌNH PHÂN ĐOẠN IP CHI TIẾT (Tự động đồng bộ với ô thông minh ở trên):
-                  </div>
-                  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                    <div>
-                      <label class="form-label text-xs font-semibold" style="display: block; color: #475569; margin-bottom: 3px;">Dải Mạng CIDR (Subnet):</label>
-                      <input type="text" id="ipscan-input-subnet" class="form-control" placeholder="10.90.39.0/24"
-                        style="width: 100%; padding: 6px 9px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px;"
-                        oninput="app.onClassicIpInputChanged('subnet')">
-                    </div>
-                    <div>
-                      <label class="form-label text-xs font-semibold" style="display: block; color: #475569; margin-bottom: 3px;">Từ IP (Start IP):</label>
-                      <input type="text" id="ipscan-input-start" class="form-control" placeholder="10.90.39.1"
-                        style="width: 100%; padding: 6px 9px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px;"
-                        oninput="app.onClassicIpInputChanged('start')">
-                    </div>
-                    <div>
-                      <label class="form-label text-xs font-semibold" style="display: block; color: #475569; margin-bottom: 3px;">Đến IP (End IP):</label>
-                      <input type="text" id="ipscan-input-end" class="form-control" placeholder="10.90.39.254"
-                        style="width: 100%; padding: 6px 9px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px;"
-                        oninput="app.onClassicIpInputChanged('end')">
-                    </div>
-                  </div>
-                </div>
+                <!-- Threads -->
+                <select id="ipscan-input-threads" class="form-control form-control-sm" style="width: 105px; font-size: 12px; font-weight: 600; height: 32px; padding: 4px 6px;">
+                  <option value="20">20 Threads</option>
+                  <option value="50" selected>50 Threads</option>
+                  <option value="100">100 Threads</option>
+                </select>
 
-                <!-- Host Discovery Options Row -->
-                <div
-                  style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
-                  <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-                    <span style="font-size: 12px; color: #64748b; font-weight: 600;">Dải IP nhanh:</span>
-                    <button type="button" class="btn btn-sky-outline btn-sm" id="btn-preset-local" onclick="app.applyIpScanPreset('local')" style="font-weight: 700;">🏠 Mạng Của Máy</button>
-                    <button type="button" class="btn btn-slate-light btn-sm" onclick="app.applyIpScanPreset('192.168.1')">192.168.1.x</button>
-                    <button type="button" class="btn btn-slate-light btn-sm" onclick="app.applyIpScanPreset('192.168.0')">192.168.0.x</button>
-                    <button type="button" class="btn btn-slate-light btn-sm" onclick="app.applyIpScanPreset('10.0.0')">10.0.0.x</button>
-                    <button type="button" class="btn btn-slate-light btn-sm" onclick="app.applyIpScanPreset('172.16.1')">172.16.1.x</button>
-                  </div>
-
-                <div style="display: flex; gap: 14px; align-items: center; font-size: 12.5px; color: #334155;">
-                  <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                    <input type="checkbox" id="ipscan-chk-ping" checked> ⚡ Ping Latency
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                    <input type="checkbox" id="ipscan-chk-hostname" checked> 🏷️ Hostname
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                    <input type="checkbox" id="ipscan-chk-mac" checked> 🔑 MAC & Vendor
-                  </label>
-                </div>
-              </div>
-
-              <!-- Important Windows & Windows Server Port Scanner Controls -->
-              <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-top: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
-                  <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="font-size: 14px;">🔌</span>
-                    <strong style="font-size: 12.5px; color: #1e293b;">Quét Cổng Dịch Vụ Quan Trọng (Windows & Windows Server):</strong>
-                  </div>
-
-                  <!-- Quick Port Selection Buttons -->
-                  <div style="display: flex; gap: 5px; align-items: center; flex-wrap: wrap;">
-                    <button type="button" class="btn btn-slate-light btn-sm" style="font-size: 11px; padding: 3px 8px;" onclick="app.applyPortPreset('web')">🌐 Web (80, 443)</button>
-                    <button type="button" class="btn btn-slate-light btn-sm" style="font-size: 11px; padding: 3px 8px;" onclick="app.applyPortPreset('client')">🖥️ Windows Client (3389, 445)</button>
-                    <button type="button" class="btn btn-slate-light btn-sm" style="font-size: 11px; padding: 3px 8px;" onclick="app.applyPortPreset('server')">🖧 Windows Server & AD</button>
-                    <button type="button" class="btn btn-slate-light btn-sm" style="font-size: 11px; padding: 3px 8px;" onclick="app.applyPortPreset('db')">🗄️ Database & SSH</button>
-                    <button type="button" class="btn btn-sky-outline btn-sm" style="font-size: 11px; padding: 3px 8px;" onclick="app.applyPortPreset('all')">✅ Chọn Tất Cả</button>
-                    <button type="button" class="btn btn-slate-light btn-sm" style="font-size: 11px; padding: 3px 8px;" onclick="app.applyPortPreset('none')">❌ Bỏ Chọn</button>
-                  </div>
-                </div>
-
-                <!-- Port Checkboxes Grid -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; font-size: 12px; color: #334155; padding-top: 4px;">
-                  <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;" title="HTTP Web Server / Giao diện Web thiết bị">
-                    <input type="checkbox" id="ipscan-chk-port-80" checked> <span>🌐 Port 80 (HTTP)</span>
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;" title="HTTPS Web Server / Web quản trị bảo mật">
-                    <input type="checkbox" id="ipscan-chk-port-443" checked> <span>🔒 Port 443 (HTTPS)</span>
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;" title="Microsoft Remote Desktop (RDP) điều khiển từ xa">
-                    <input type="checkbox" id="ipscan-chk-port-3389" checked> <span>🖥️ Port 3389 (RDP Remote)</span>
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;" title="SMB Chia sẻ File, Thư mục và Máy in Windows">
-                    <input type="checkbox" id="ipscan-chk-port-445" checked> <span>📁 Port 445 (SMB Share)</span>
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;" title="RPC Endpoint Mapper & WMI quản trị hệ thống">
-                    <input type="checkbox" id="ipscan-chk-port-135"> <span>⚙️ Port 135 (RPC / WMI)</span>
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;" title="Microsoft SQL Server Database">
-                    <input type="checkbox" id="ipscan-chk-port-1433"> <span>🗄️ Port 1433 (MSSQL DB)</span>
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;" title="Active Directory Domain Services (LDAP)">
-                    <input type="checkbox" id="ipscan-chk-port-389"> <span>🏢 Port 389 (AD LDAP)</span>
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;" title="DNS Domain Name System Server">
-                    <input type="checkbox" id="ipscan-chk-port-53"> <span>🔀 Port 53 (DNS Server)</span>
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;" title="Windows Remote Management (PowerShell Remoting)">
-                    <input type="checkbox" id="ipscan-chk-port-5985"> <span>⚡ Port 5985 (WinRM / PS)</span>
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;" title="OpenSSH Remote Management / Thiết bị mạng">
-                    <input type="checkbox" id="ipscan-chk-port-22"> <span>🔑 Port 22 (SSH Admin)</span>
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;" title="Active Directory Kerberos Authentication">
-                    <input type="checkbox" id="ipscan-chk-port-88"> <span>🛡️ Port 88 (Kerberos AD)</span>
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;" title="FTP File Transfer Protocol (IIS)">
-                    <input type="checkbox" id="ipscan-chk-port-21"> <span>🗂️ Port 21 (FTP Server)</span>
-                  </label>
-                </div>
-
-                <!-- Custom Ports Row -->
-                <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 8px;">
-                  <span style="font-size: 11.5px; color: #64748b; font-weight: 600;">Cổng tùy chỉnh bổ sung:</span>
-                  <input type="text" id="ipscan-input-custom-ports" placeholder="Ví dụ: 8080, 8443, 3306, 5432..."
-                    style="flex: 1; max-width: 320px; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px;">
-                  <span style="font-size: 11px; color: #94a3b8;">(Phân cách bằng dấu phẩy)</span>
-                </div>
-              </div>
-
-              <!-- Start Button & Live Status -->
-              <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 12px;">
-                <div style="display: flex; align-items: center; gap: 8px;" id="ipscan-status-container">
-                  <span id="ipscan-spinner" class="spinner-border spinner-border-sm text-primary"
-                    style="display: none; width: 16px; height: 16px;"></span>
-                  <span id="ipscan-status-text" style="font-size: 13px; font-weight: 600; color: #475569;">Sẵn sàng quét
-                    dải IP LAN.</span>
-                </div>
-
-                <button class="btn btn-primary-gradient px-4 py-2 font-bold" id="ipscan-btn-start"
-                  onclick="app.startIpScanner()">
-                  <span>▶</span> BẮT ĐẦU QUÉT LAN
+                <!-- Start Button -->
+                <button class="btn btn-primary-gradient btn-sm font-bold" id="ipscan-btn-start" onclick="app.startIpScanner()" style="padding: 6px 16px; font-size: 12.5px; white-space: nowrap; height: 32px;">
+                  <span>▶</span> BẮT ĐẦU QUÉT
                 </button>
               </div>
 
+              <!-- Secondary Row: Options, Port Toggle, Status Message -->
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; padding-top: 6px; border-top: 1px dashed #e2e8f0; font-size: 12px;">
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; color: #475569;">
+                  <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; margin: 0;">
+                    <input type="checkbox" id="ipscan-chk-ping" checked> ⚡ Ping
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; margin: 0;">
+                    <input type="checkbox" id="ipscan-chk-hostname" checked> 🏷️ Hostname
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; margin: 0;">
+                    <input type="checkbox" id="ipscan-chk-mac" checked> 🔑 MAC
+                  </label>
+                  <button type="button" class="btn btn-xs btn-slate-light" id="btn-toggle-ports-box" onclick="app.toggleIpScanPortsBox()" style="font-size: 11px; padding: 2px 8px;" title="Mở rộng/Thu gọn tùy chọn 12 cổng dịch vụ quan trọng">
+                    🔌 Tùy chọn cổng (12 Ports) ▼
+                  </button>
+                  <button type="button" class="btn btn-xs btn-slate-light" id="btn-toggle-ip-advanced" onclick="app.toggleIpScanAdvancedMode()" style="font-size: 11px; padding: 2px 8px;" title="Cấu hình Từ IP - Đến IP chi tiết">
+                    ⚙️ Phân đoạn IP
+                  </button>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #64748b;" id="ipscan-status-container">
+                  <span id="ipscan-spinner" class="spinner-border spinner-border-sm text-primary" style="display: none; width: 14px; height: 14px;"></span>
+                  <span id="ipscan-status-text" style="font-weight: 600;">Sẵn sàng quét dải IP LAN.</span>
+                </div>
+              </div>
+
+              <!-- Scope & Backward Compatibility Hidden Elements -->
+              <span id="ipscan-scope-text" style="display: none;"></span>
+              <span id="ipscan-detected-lan-badge" style="display: none;"></span>
+
+              <!-- Collapsible Advanced Range Box (Hidden by default) -->
+              <div id="ipscan-advanced-range-box" style="display: none; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 8px 10px; margin-top: 8px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                  <div>
+                    <label class="form-label text-xs font-semibold" style="margin-bottom: 2px;">Dải Mạng (Subnet):</label>
+                    <input type="text" id="ipscan-input-subnet" class="form-control form-control-sm" placeholder="172.16.112.0/24" oninput="app.onClassicIpInputChanged('subnet')">
+                  </div>
+                  <div>
+                    <label class="form-label text-xs font-semibold" style="margin-bottom: 2px;">Từ IP (Start):</label>
+                    <input type="text" id="ipscan-input-start" class="form-control form-control-sm" placeholder="172.16.112.1" oninput="app.onClassicIpInputChanged('start')">
+                  </div>
+                  <div>
+                    <label class="form-label text-xs font-semibold" style="margin-bottom: 2px;">Đến IP (End):</label>
+                    <input type="text" id="ipscan-input-end" class="form-control form-control-sm" placeholder="172.16.112.254" oninput="app.onClassicIpInputChanged('end')">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Collapsible Port Scanner Box (Hidden by default to save 75% space) -->
+              <div id="ipscan-ports-box" style="display: none; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-top: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 6px;">
+                  <strong style="font-size: 11.5px; color: #1e293b;">🔌 Chọn Cổng Dịch Vụ Cần Quét:</strong>
+                  <div style="display: flex; gap: 4px;">
+                    <button type="button" class="btn btn-slate-light btn-xs" style="font-size: 10.5px; padding: 2px 6px;" onclick="app.applyPortPreset('web')">Web (80, 443)</button>
+                    <button type="button" class="btn btn-slate-light btn-xs" style="font-size: 10.5px; padding: 2px 6px;" onclick="app.applyPortPreset('client')">Windows (3389, 445)</button>
+                    <button type="button" class="btn btn-slate-light btn-xs" style="font-size: 10.5px; padding: 2px 6px;" onclick="app.applyPortPreset('server')">Server & AD</button>
+                    <button type="button" class="btn btn-slate-light btn-xs" style="font-size: 10.5px; padding: 2px 6px;" onclick="app.applyPortPreset('all')">Tất Cả</button>
+                    <button type="button" class="btn btn-slate-light btn-xs" style="font-size: 10.5px; padding: 2px 6px;" onclick="app.applyPortPreset('none')">Bỏ Chọn</button>
+                  </div>
+                </div>
+                <!-- Checkboxes Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; font-size: 11.5px; color: #334155;">
+                  <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="ipscan-chk-port-80" checked> <span>🌐 Port 80 (HTTP)</span></label>
+                  <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="ipscan-chk-port-443" checked> <span>🔒 Port 443 (HTTPS)</span></label>
+                  <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="ipscan-chk-port-3389" checked> <span>🖥️ Port 3389 (RDP)</span></label>
+                  <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="ipscan-chk-port-445" checked> <span>📁 Port 445 (SMB)</span></label>
+                  <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="ipscan-chk-port-135"> <span>⚙️ Port 135 (RPC)</span></label>
+                  <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="ipscan-chk-port-1433"> <span>🗄️ Port 1433 (MSSQL)</span></label>
+                  <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="ipscan-chk-port-389"> <span>🏢 Port 389 (LDAP)</span></label>
+                  <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="ipscan-chk-port-53"> <span>🔀 Port 53 (DNS)</span></label>
+                  <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="ipscan-chk-port-5985"> <span>⚡ Port 5985 (WinRM)</span></label>
+                  <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="ipscan-chk-port-22"> <span>🔑 Port 22 (SSH)</span></label>
+                  <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="ipscan-chk-port-88"> <span>🛡️ Port 88 (Kerberos)</span></label>
+                  <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="ipscan-chk-port-21"> <span>🗂️ Port 21 (FTP)</span></label>
+                </div>
+                <!-- Custom Ports Row -->
+                <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px; border-top: 1px dashed #e2e8f0; padding-top: 6px;">
+                  <span style="font-size: 11px; color: #64748b; font-weight: 600;">Cổng tùy chỉnh:</span>
+                  <input type="text" id="ipscan-input-custom-ports" placeholder="8080, 8443, 3306..." style="flex: 1; max-width: 250px; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 11px;">
+                </div>
+              </div>
+            </div>
+
+            <!-- 🔍 Search & Filter Bar for Scanned Devices -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 10px; flex-wrap: wrap;">
+              <div style="position: relative; flex: 1; max-width: 450px;">
+                <input type="text" id="ipscan-search-input" class="form-control form-control-sm"
+                  placeholder="🔍 Lọc nhanh theo IP, Hostname, MAC, Hãng, Cổng (VD: 172.16, PC, Hikvision, 3389)..."
+                  style="padding-left: 30px; padding-right: 26px; border-radius: 6px; font-size: 12.5px; height: 32px;"
+                  oninput="app.filterIpScanResults()">
+                <span style="position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #94a3b8; pointer-events: none;">🔍</span>
+                <button type="button" onclick="app.clearIpScanSearch()"
+                  style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #94a3b8; cursor: pointer; font-size: 13px; line-height: 1;"
+                  title="Xóa bộ lọc tìm kiếm">✕</button>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <select id="ipscan-filter-port" class="form-control form-control-sm" style="font-size: 12px; height: 32px; width: auto;" onchange="app.filterIpScanResults()">
+                  <option value="all">Tất cả dịch vụ</option>
+                  <option value="rdp">🖥️ Máy mở RDP (3389)</option>
+                  <option value="smb">📁 Máy mở SMB Share (445)</option>
+                  <option value="web">🌐 Thiết bị mở Web (80/443)</option>
+                </select>
+                <span id="ipscan-filter-info" style="font-size: 12px; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 4px 10px; border-radius: 12px; white-space: nowrap;">
+                  0 thiết bị
+                </span>
+              </div>
             </div>
 
             <!-- Results Table -->
