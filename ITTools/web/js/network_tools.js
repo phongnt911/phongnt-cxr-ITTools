@@ -1210,31 +1210,116 @@ Object.assign(AppController.prototype, {
     }
     results.forEach((item, index) => {
       const row = body.insertRow();
+      row.style.height = "38px";
+      row.style.borderBottom = "1px solid #f1f5f9";
+      row.style.transition = "background 0.12s";
+      row.onmouseover = () => { row.style.background = "#f8fafc"; };
+      row.onmouseout = () => { row.style.background = "white"; };
+
       const ports = (item.open_ports || []).map(Number).filter(p => Number.isInteger(p) && p > 0 && p < 65536);
-      const values = [index + 1, `🟢 Online (${item.latency_ms || item.ping || '<1ms'})`,
-        item.ip, item.hostname || 'Không tìm được tên', item.mac || '-',
-        `${item.vendor || item.brand || 'Unknown'} / ${item.device_type || 'Unknown'}`, ports.join(', ') || '-'];
-      values.forEach(value => {
-        const cell = row.insertCell();
-        cell.textContent = String(value ?? '');
-        cell.style.padding = '8px';
-      });
-      [2, 3, 4, 5].forEach(i => row.cells[i].addEventListener('click', () => this.copyToClipboard(String(values[i]), 'Thông tin')));
+      const latency = item.latency_ms || item.ping || '<1ms';
+      const hostname = item.hostname || 'Không tìm được tên';
+      const vendorDev = `${item.vendor || item.brand || 'Unknown'} / ${item.device_type || 'Unknown'}`;
+      const portStr = ports.join(', ') || '-';
+
+      // 0: Index
+      const cIndex = row.insertCell();
+      cIndex.textContent = String(index + 1);
+      cIndex.style.cssText = "text-align: center; color: #64748b; font-weight: 600; padding: 6px 4px; font-size: 11.5px;";
+
+      // 1: Status
+      const cStatus = row.insertCell();
+      cStatus.innerHTML = `<span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 700;">🟢 Online (${latency})</span>`;
+      cStatus.style.cssText = "text-align: center; white-space: nowrap; padding: 6px;";
+
+      // 2: IP
+      const cIp = row.insertCell();
+      cIp.innerHTML = `<span style="font-family: monospace; font-weight: 700; color: #0284c7; font-size: 12.5px;">${this.escapeHtml(item.ip)}</span>`;
+      cIp.style.cssText = "white-space: nowrap; padding: 6px; cursor: pointer;";
+      cIp.title = "Bấm để sao chép địa chỉ IP";
+      cIp.addEventListener('click', () => this.copyToClipboard(item.ip, 'IP'));
+
+      // 3: Hostname (Compact with Tooltip)
+      const cHost = row.insertCell();
+      cHost.textContent = hostname;
+      cHost.title = hostname;
+      cHost.style.cssText = "max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; color: #1e293b; padding: 6px; cursor: pointer;";
+      cHost.addEventListener('click', () => this.copyToClipboard(hostname, 'Hostname'));
+
+      // 4: MAC
+      const cMac = row.insertCell();
+      cMac.textContent = item.mac || '-';
+      cMac.title = item.mac || '-';
+      cMac.style.cssText = "font-family: monospace; font-size: 11.5px; color: #475569; white-space: nowrap; padding: 6px; cursor: pointer;";
+      cMac.addEventListener('click', () => this.copyToClipboard(item.mac, 'MAC'));
+
+      // 5: Vendor / Device
+      const cVendor = row.insertCell();
+      cVendor.textContent = vendorDev;
+      cVendor.title = vendorDev;
+      cVendor.style.cssText = "max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; color: #64748b; padding: 6px; cursor: pointer;";
+      cVendor.addEventListener('click', () => this.copyToClipboard(vendorDev, 'Nhà sản xuất'));
+
+      // 6: Open Ports (Pill Badges)
+      const cPorts = row.insertCell();
+      if (ports.length > 0) {
+        cPorts.innerHTML = ports.slice(0, 3).map(p =>
+          `<span style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 3px; font-size: 10px; font-weight: 600; margin-right: 3px;">${p}</span>`
+        ).join('') + (ports.length > 3 ? `<span style="font-size: 10px; color: #64748b;">+${ports.length - 3}</span>` : '');
+      } else {
+        cPorts.textContent = '-';
+        cPorts.style.color = '#94a3b8';
+      }
+      cPorts.title = `Các cổng mở: ${portStr}`;
+      cPorts.style.cssText = "white-space: nowrap; padding: 6px;";
+
+      // 7: Actions (Icon-only buttons with tooltip hover)
       const actions = row.insertCell();
-      const button = (label, callback) => {
+      actions.style.cssText = "text-align: center; white-space: nowrap; padding: 4px 6px;";
+
+      const button = (icon, titleText, callback, extraStyle = '') => {
         const element = document.createElement('button');
-        element.className = 'btn btn-slate-light btn-sm';
-        element.textContent = label;
-        element.addEventListener('click', callback);
+        element.type = 'button';
+        element.innerHTML = icon;
+        element.title = titleText;
+        element.style.cssText = `display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; padding: 0; font-size: 13px; margin: 0 1.5px; border-radius: 5px; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer; transition: all 0.12s; ${extraStyle}`;
+        element.addEventListener('click', (e) => {
+          e.stopPropagation();
+          callback();
+        });
+        element.onmouseenter = () => { element.style.transform = 'scale(1.1)'; element.style.borderColor = '#0284c7'; };
+        element.onmouseleave = () => { element.style.transform = 'scale(1)'; element.style.borderColor = '#cbd5e1'; };
         actions.appendChild(element);
       };
-      button('⚡ Quét Port', () => this.openHostPortScanModal(item.ip));
-      button('🦀 RustDesk', () => this.connectRustdesk(item.ip));
-      button('📋 IP', () => this.copyToClipboard(item.ip, 'IP'));
-      if (ports.includes(3389)) button('🖥️ RDP', () => this.connectRdp(item.ip));
-      if (ports.includes(445)) button('📁 Share', () => this.openSmbShare(item.ip));
-      if (ports.includes(80) || ports.includes(443)) button('🌐 Web', () => this.openWebBrowser(`${ports.includes(443) ? 'https' : 'http'}://${item.ip}`));
-      if (ports.includes(5985) || ports.includes(5986)) button('⚡ WinRM', () => this.openWinRmSession(item.ip));
+
+      // 1. RustDesk Direct Remote
+      button('🦀', `Kết nối từ xa RustDesk tới ${item.ip}`, () => this.connectRustdesk(item.ip), 'border-color: #fecdd3; background: #fff1f2;');
+
+      // 2. Scan Target Ports
+      button('⚡', `Quét chuyên sâu cổng dịch vụ máy ${item.ip}`, () => this.openHostPortScanModal(item.ip));
+
+      // 3. Copy IP
+      button('📋', `Sao chép địa chỉ IP (${item.ip})`, () => this.copyToClipboard(item.ip, 'IP'));
+
+      // 4. RDP
+      if (ports.includes(3389)) {
+        button('🖥️', `Mở Remote Desktop (RDP) tới ${item.ip}`, () => this.connectRdp(item.ip), 'border-color: #bae6fd; background: #f0f9ff;');
+      }
+
+      // 5. SMB File/Printer Share
+      if (ports.includes(445)) {
+        button('📁', `Mở thư mục chia sẻ mạng (SMB) \\\\${item.ip}`, () => this.openSmbShare(item.ip));
+      }
+
+      // 6. Web Admin (HTTP/HTTPS)
+      if (ports.includes(80) || ports.includes(443)) {
+        button('🌐', `Mở giao diện Web quản trị (${ports.includes(443) ? 'https' : 'http'}://${item.ip})`, () => this.openWebBrowser(`${ports.includes(443) ? 'https' : 'http'}://${item.ip}`));
+      }
+
+      // 7. WinRM PowerShell
+      if (ports.includes(5985) || ports.includes(5986)) {
+        button('💻', `Mở phiên PowerShell từ xa (WinRM) tới ${item.ip}`, () => this.openWinRmSession(item.ip));
+      }
     });
   },
 

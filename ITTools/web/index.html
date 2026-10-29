@@ -4096,14 +4096,14 @@
 
             <!-- 🔍 Search & Filter Bar for Scanned Devices -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 10px; flex-wrap: wrap;">
-              <div style="position: relative; flex: 1; max-width: 450px;">
+              <div style="position: relative; flex: 1; max-width: 480px; display: flex; align-items: center;">
                 <input type="text" id="ipscan-search-input" class="form-control form-control-sm"
-                  placeholder="🔍 Lọc nhanh theo IP, Hostname, MAC, Hãng, Cổng (VD: 172.16, PC, Hikvision, 3389)..."
-                  style="padding-left: 30px; padding-right: 26px; border-radius: 6px; font-size: 12.5px; height: 32px;"
+                  placeholder="Lọc nhanh theo IP, Hostname, MAC, Hãng, Cổng (VD: 172.16, PC, 3389)..."
+                  style="width: 100%; padding-left: 28px; padding-right: 30px; border-radius: 6px; font-size: 12.5px; height: 32px;"
                   oninput="app.filterIpScanResults()">
-                <span style="position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #94a3b8; pointer-events: none;">🔍</span>
-                <button type="button" onclick="app.clearIpScanSearch()"
-                  style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #94a3b8; cursor: pointer; font-size: 13px; line-height: 1;"
+                <span style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #94a3b8; pointer-events: none;">🔍</span>
+                <button type="button" onclick="app.clearIpScanSearch()" id="btn-ipscan-clear-search"
+                  style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; border: none; background: #e2e8f0; border-radius: 50%; color: #64748b; cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center; line-height: 1; padding: 0;"
                   title="Xóa bộ lọc tìm kiếm">✕</button>
               </div>
 
@@ -4122,19 +4122,19 @@
 
             <!-- Results Table -->
             <div class="table-responsive"
-              style="max-height: 480px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
-              <table class="table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              style="max-height: 580px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <table class="table" style="width: 100%; border-collapse: collapse; font-size: 12.5px; table-layout: auto;">
                 <thead
                   style="position: sticky; top: 0; background: #f8fafc; z-index: 10; border-bottom: 2px solid #e2e8f0;">
                   <tr>
-                    <th style="width: 36px; text-align: center; padding: 10px;">#</th>
-                    <th style="width: 110px; text-align: center; padding: 10px;">Trạng Thái</th>
-                    <th style="width: 140px; text-align: left; padding: 10px;">Địa Chỉ IP</th>
-                    <th style="text-align: left; padding: 10px;">Hostname / Tên Thiết Bị</th>
-                    <th style="width: 150px; text-align: left; padding: 10px;">Địa Chỉ MAC</th>
-                    <th style="width: 130px; text-align: left; padding: 10px;">Nhà Sản Xuất</th>
-                    <th style="width: 180px; text-align: left; padding: 10px;">Cổng Mở (Open Ports)</th>
-                    <th style="width: 130px; text-align: right; padding: 10px;">Thao Tác</th>
+                    <th style="width: 36px; text-align: center; padding: 8px 4px;">#</th>
+                    <th style="width: 100px; text-align: center; padding: 8px 6px;">Trạng Thái</th>
+                    <th style="width: 125px; text-align: left; padding: 8px 6px;">Địa Chỉ IP</th>
+                    <th style="width: 190px; max-width: 220px; text-align: left; padding: 8px 6px;">Hostname / Tên Thiết Bị</th>
+                    <th style="width: 135px; text-align: left; padding: 8px 6px;">Địa Chỉ MAC</th>
+                    <th style="width: 130px; text-align: left; padding: 8px 6px;">Nhà Sản Xuất</th>
+                    <th style="width: 140px; text-align: left; padding: 8px 6px;">Cổng Mở</th>
+                    <th style="width: 175px; text-align: center; padding: 8px 6px;">Thao Tác</th>
                   </tr>
                 </thead>
                 <tbody id="ipscan-results-body">
