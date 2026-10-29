@@ -1,5 +1,5 @@
 """
-IT Tool LTT - Windows System Management Utility 2026
+IT Tool / SAGS-CXR - Windows System Management Utility 2026
 Author: Nguyễn Thanh Phong
 Email: phongnt-cxr@sags.vn
 Website: https://github.com/lethetuan/ITTools
@@ -73,6 +73,13 @@ else:
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
+if __name__ == '__main__' and '--self-test' in sys.argv:
+    from runtime_diagnostics import run
+    index = sys.argv.index('--self-test')
+    if index + 1 >= len(sys.argv):
+        raise SystemExit('Usage: IT_Tool_SAGS_CXR_2026.exe --self-test report.json')
+    raise SystemExit(run(sys.argv[index + 1]))
+
 # Dedicated Native Zoom Screen GUI Subprocess Dispatcher
 if len(sys.argv) > 1 and sys.argv[1] == '--zoom-screen':
     from modules import zoom_screen_gui
@@ -87,12 +94,13 @@ import threading
 
 from constants import APP_NAME, APP_VERSION, APP_AUTHOR, APP_EMAIL, SINGLE_INSTANCE_PORT
 from web_api import Api
+from security_utils import require_microsoft_signature
 
 WIN_TITLE = f"{APP_NAME} 2026 ver {APP_VERSION} - {APP_AUTHOR} | Email: {APP_EMAIL}"
 
 def activate_existing_instance(port=SINGLE_INSTANCE_PORT, win_title=WIN_TITLE):
     """
-    Checks if an instance of IT Tool LTT is already running.
+    Checks if an instance of IT Tool / SAGS-CXR is already running.
     If running (minimized, hidden in tray, or in background):
     signals it to restore and bring to front, then returns True.
     """
@@ -203,7 +211,7 @@ def run_as_admin():
                 "Không thể nâng cấp quyền Administrator.\n\n"
                 "Ứng dụng sẽ tiếp tục chạy với quyền hạn hiện tại.\n"
                 "Một số tính năng có thể bị hạn chế.",
-                "IT Tool LTT - Cảnh báo",
+                "IT Tool / SAGS-CXR - Cảnh báo",
                 0x30  # MB_ICONWARNING
             )
             return False
@@ -268,7 +276,7 @@ def handle_missing_webview2():
     msg = (
         "PHÁT HIỆN THIẾU THÀNH PHẦN HỆ THỐNG:\n\n"
         "Máy tính của bạn chưa có 'Microsoft Edge WebView2 Runtime'.\n\n"
-        "Nếu thiếu WebView2, giao diện IT Tool LTT sẽ bị lỗi vỡ khung (bị rơi vào trình duyệt cũ IE11) "
+        "Nếu thiếu WebView2, giao diện IT Tool / SAGS-CXR sẽ bị lỗi vỡ khung (bị rơi vào trình duyệt cũ IE11) "
         "và các tính năng không thể hoạt động.\n\n"
         "Bạn có muốn tải và cài đặt Microsoft Edge WebView2 ngay bây giờ không?\n\n"
         "• Bấm 'Yes' (Có): Tự động tải và chạy bộ cài đặt chính thức từ Microsoft.\n"
@@ -277,7 +285,7 @@ def handle_missing_webview2():
     res = ctypes.windll.user32.MessageBoxW(
         0,
         msg,
-        "IT Tool LTT - Yêu cầu Microsoft Edge WebView2",
+        "IT Tool / SAGS-CXR - Yêu cầu Microsoft Edge WebView2",
         0x34  # MB_YESNO | MB_ICONWARNING
     )
     if res == 6:  # IDYES
@@ -286,7 +294,7 @@ def handle_missing_webview2():
         import urllib.request
         import webbrowser
 
-        installer_path = os.path.join(tempfile.gettempdir(), "MicrosoftEdgeWebview2Setup.exe")
+        installer_path = os.path.join(tempfile.mkdtemp(prefix="ITTools-WebView2-"), "MicrosoftEdgeWebview2Setup.exe")
         downloaded = False
         try:
             req = urllib.request.Request(
@@ -297,14 +305,15 @@ def handle_missing_webview2():
                 f.write(resp.read())
 
             if os.path.exists(installer_path) and os.path.getsize(installer_path) > 10000:
+                require_microsoft_signature(installer_path)
                 downloaded = True
                 subprocess.Popen([installer_path, "/install"])
                 ctypes.windll.user32.MessageBoxW(
                     0,
                     "Bộ cài đặt Microsoft Edge WebView2 đã được kích hoạt!\n\n"
                     "Vui lòng đợi 1 - 2 phút để Windows hoàn tất cài đặt (yêu cầu có kết nối Internet),\n"
-                    "sau đó khởi động lại IT Tool LTT.",
-                    "IT Tool LTT - Đang cài đặt",
+                    "sau đó khởi động lại IT Tool / SAGS-CXR.",
+                    "IT Tool / SAGS-CXR - Đang cài đặt",
                     0x40  # MB_ICONINFORMATION
                 )
         except Exception as ex:
@@ -317,8 +326,8 @@ def handle_missing_webview2():
                 0,
                 "Trình duyệt đã được mở tới trang tải Microsoft Edge WebView2.\n\n"
                 "Vui lòng tải 'Evergreen Bootstrapper' hoặc 'Standalone Installer', "
-                "tiến hành cài đặt rồi mở lại IT Tool LTT.",
-                "IT Tool LTT - Hướng dẫn tải",
+                "tiến hành cài đặt rồi mở lại IT Tool / SAGS-CXR.",
+                "IT Tool / SAGS-CXR - Hướng dẫn tải",
                 0x40  # MB_ICONINFORMATION
             )
 
@@ -419,8 +428,8 @@ def main():
         try:
             ctypes.windll.user32.MessageBoxW(
                 0,
-                f"Lỗi khởi động giao diện Web IT Tool LTT:\n\n{ex}\n\nVui lòng kiểm tra lại môi trường Windows / WebView2 Runtime.",
-                "IT Tool LTT - Lỗi",
+                f"Lỗi khởi động giao diện Web IT Tool / SAGS-CXR:\n\n{ex}\n\nVui lòng kiểm tra lại môi trường Windows / WebView2 Runtime.",
+                "IT Tool / SAGS-CXR - Lỗi",
                 0x10
             )
         except Exception:

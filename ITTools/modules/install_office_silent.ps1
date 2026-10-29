@@ -194,6 +194,12 @@ Set-State -Active $true -Status "installing" -Percentage 42.0 -Message "Đang t�
 $launchTime = Get-Date
 
 try {
+    # Verify the publisher immediately before using either cached or downloaded setup.
+    $signature = Get-AuthenticodeSignature -LiteralPath $setupExe
+    if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch '(^|,\s*)O=Microsoft Corporation(,|$)') {
+        Set-State -Active $false -Status "error" -Percentage 100 -Message "Bộ cài chưa có chữ ký Microsoft hợp lệ." -LogLine "Chặn setup.exe không tin cậy."
+        exit 1
+    }
     $proc = Start-Process -FilePath $setupExe -ArgumentList "/configure `"$configFile`"" -PassThru -NoNewWindow
 } catch {
     Set-State -Active $false -Status "error" -Percentage 100.0 -Message "❌ Không thể khởi chạy setup.exe: $($_.Exception.Message)" -LogLine "Lỗi chạy setup.exe: $($_.Exception.Message)"

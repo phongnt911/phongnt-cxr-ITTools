@@ -24,7 +24,7 @@ except Exception as e:
     CLR_AVAILABLE = False
     print(f"Warning: CLR Windows Forms not available for TrayManager: {e}")
 
-from constants import APP_NAME, APP_VERSION, APP_AUTHOR, APP_EMAIL, APP_WEBSITE, APP_CONTACT_URL
+from constants import APP_NAME, APP_VERSION, APP_AUTHOR, APP_EMAIL, APP_CONTACT_URL
 
 user32 = ctypes.windll.user32
 
@@ -107,7 +107,7 @@ class TrayManager:
             menu = ContextMenuStrip()
 
             # Item 1: Mở giao diện chính
-            item_open = menu.Items.Add("🚀 Mở IT Tool LTT")
+            item_open = menu.Items.Add(f"🚀 Mở {APP_NAME} 2026")
 
             def on_open_click(sender, args):
                 self.show_window()
@@ -124,18 +124,6 @@ class TrayManager:
             menu.Items.Add(item_hide)
 
             menu.Items.Add(ToolStripSeparator())
-
-            # Item 3: Website
-            item_web = ToolStripMenuItem(f"🌐 Repo nguồn: {APP_WEBSITE.replace('https://', '')}")
-
-            def on_web_click(sender, args):
-                try:
-                    webbrowser.open(APP_WEBSITE)
-                except Exception:
-                    pass
-
-            item_web.Click += on_web_click
-            menu.Items.Add(item_web)
 
             # Item 5: Email
             item_tele = ToolStripMenuItem(f"✉️ Email: {APP_EMAIL}")

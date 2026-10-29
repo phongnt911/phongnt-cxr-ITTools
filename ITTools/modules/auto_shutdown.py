@@ -399,7 +399,7 @@ import base64
 
 def _run_ps(ps_script, timeout=10):
     """Executes PowerShell script via Base64 EncodedCommand to avoid escaping issues."""
-    encoded = base64.b64encode(ps_script.encode('utf-16le')).decode('utf-8')
+    encoded = base64.b64encode(('$ErrorActionPreference="Stop"; ' + ps_script).encode('utf-16le')).decode('utf-8')
     return subprocess.run(["powershell", "-NoProfile", "-EncodedCommand", encoded], capture_output=True, text=True, timeout=timeout)
 
 
@@ -412,7 +412,10 @@ def execute_immediate_power(action):
         elif action in ("restart", "restart_now"):
             cmd = "shutdown /r /f /t 0"
             msg = "Đã phát lệnh Khởi động lại ngay lập tức."
-        elif action in ("hibernate", "sleep"):
+        elif action == "hibernate":
+            cmd = "shutdown /h"
+            msg = "Đã phát lệnh Hibernate."
+        elif action == "sleep":
             cmd = 'powershell -Command "Add-Type -Assembly System.Windows.Forms; [System.Windows.Forms.Application]::SetSuspendState(\'Suspend\', $false, $false)"'
             msg = "Đã chuyển hệ thống sang chế độ Sleep/Hibernate."
         elif action == "logoff":
@@ -427,7 +430,9 @@ def execute_immediate_power(action):
         else:
             return {"success": False, "message": f"Hành động không hợp lệ: {action}"}
 
-        subprocess.run(cmd, shell=True)
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=30)
+        if result.returncode != 0:
+            return {"success": False, "message": result.stderr or result.stdout or f"Lệnh thất bại ({result.returncode})."}
         return {"success": True, "message": msg}
     except Exception as e:
         return {"success": False, "message": f"Lỗi thực thi: {str(e)}"}
@@ -436,14 +441,19 @@ def execute_immediate_power(action):
 def create_quick_timer_task(action, minutes, message=""):
     """Creates a one-time Windows Task Scheduler task for quick timer, ensuring execution even if app is closed."""
     import datetime
+    import math
+    if action not in ('shutdown', 'restart', 'hibernate', 'logoff', 'lock'):
+        return {"success": False, "message": "Hành động không hợp lệ."}
     try:
         sec = float(minutes) * 60
+        if not math.isfinite(sec):
+            raise ValueError("Thời gian phải là số hữu hạn.")
+        target_dt = datetime.datetime.now() + datetime.timedelta(seconds=sec)
         if sec <= 0:
             return {"success": False, "message": "Số phút phải lớn hơn 0!"}
     except Exception as e:
         return {"success": False, "message": f"Số phút không hợp lệ: {e}"}
 
-    target_dt = datetime.datetime.now() + datetime.timedelta(seconds=sec)
     dt_str = target_dt.strftime("%Y-%m-%d %H:%M:%S")
 
     # Sanitize message to prevent PowerShell injection
@@ -456,8 +466,8 @@ def create_quick_timer_task(action, minutes, message=""):
         exe = "shutdown.exe"
         args = f'/r /f /t 0 /c "{safe_msg}"'
     elif action == "hibernate":
-        exe = "powershell.exe"
-        args = '-Command "Add-Type -Assembly System.Windows.Forms; [System.Windows.Forms.Application]::SetSuspendState(\'Suspend\', $false, $false)"'
+        exe = "shutdown.exe"
+        args = "/h"
     elif action == "logoff":
         exe = "shutdown.exe"
         args = "/l"
@@ -579,6 +589,19 @@ def get_scheduled_shutdown_tasks():
 def create_scheduled_shutdown_task(name, action, freq, time_str, days=None, date_str="", message=""):
     """Creates a Windows Task Scheduler auto shutdown task."""
     import datetime as dt_module
+    try:
+        if action not in ('shutdown', 'restart', 'hibernate', 'logoff', 'lock'):
+            raise ValueError("Hành động không hợp lệ.")
+        if freq not in ('daily', 'weekly', 'once'):
+            raise ValueError("Tần suất không hợp lệ.")
+        time_str = dt_module.datetime.strptime(time_str.strip() or '23:00', '%H:%M').strftime('%H:%M')
+        if date_str:
+            date_str = dt_module.date.fromisoformat(date_str).isoformat()
+        weekdays = {'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'}
+        if days and (not isinstance(days, list) or any(day not in weekdays for day in days)):
+            raise ValueError("Ngày trong tuần không hợp lệ.")
+    except (ValueError, TypeError, AttributeError) as error:
+        return {"success": False, "message": str(error)}
     if not name or not name.strip():
         return {"success": False, "message": "Vui lòng nhập tên lịch hẹn giờ!"}
     
@@ -644,6 +667,8 @@ def create_scheduled_shutdown_task(name, action, freq, time_str, days=None, date
 
 def toggle_scheduled_shutdown_task(task_name, enable):
     """Enables or disables a scheduled shutdown task."""
+    if not isinstance(task_name, str) or not task_name.startswith('ITTools_Shutdown_') or not all(c.isalnum() or c in '_-' for c in task_name):
+        return {"success": False, "message": "Tên lịch không hợp lệ."}
     cmd_verb = "Enable-ScheduledTask" if enable else "Disable-ScheduledTask"
     ps_code = f'{cmd_verb} -TaskName "{task_name}"'
     try:
@@ -659,6 +684,8 @@ def toggle_scheduled_shutdown_task(task_name, enable):
 
 def delete_scheduled_shutdown_task(task_name):
     """Deletes a scheduled shutdown task."""
+    if not isinstance(task_name, str) or not task_name.startswith('ITTools_Shutdown_') or not all(c.isalnum() or c in '_-' for c in task_name):
+        return {"success": False, "message": "Tên lịch không hợp lệ."}
     ps_code = f'Unregister-ScheduledTask -TaskName "{task_name}" -Confirm:$false'
     try:
         r = _run_ps(ps_code, timeout=8)
@@ -672,6 +699,8 @@ def delete_scheduled_shutdown_task(task_name):
 
 def run_scheduled_shutdown_task_now(task_name):
     """Executes a scheduled shutdown task immediately."""
+    if not isinstance(task_name, str) or not task_name.startswith('ITTools_Shutdown_') or not all(c.isalnum() or c in '_-' for c in task_name):
+        return {"success": False, "message": "Tên lịch không hợp lệ."}
     ps_code = f'Start-ScheduledTask -TaskName "{task_name}"'
     try:
         r = _run_ps(ps_code, timeout=8)

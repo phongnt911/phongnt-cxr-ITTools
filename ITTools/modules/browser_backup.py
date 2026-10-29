@@ -16,6 +16,7 @@ from tkinter import ttk, messagebox, filedialog
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from constants import COLORS, FONTS
+from security_utils import protect_backup_bytes, restrict_backup_folder
 
 
 def get_browser_definitions():
@@ -401,35 +402,34 @@ def close_browser_processes(process_names):
     time.sleep(0.5)
 
 
-def _copy_file_safe(src, dst):
-    """Safely copies file ignoring locks and removing read-only attributes."""
+BACKUP_MAGIC = b'ITTOOLS-DPAPI-v1\x00'
+
+
+def _copy_file_safe(src, dst, protect=False):
+    """Fail closed when encryption/decryption or file copy fails."""
     try:
+        with open(src, 'rb') as stream:
+            data = stream.read()
+        if protect:
+            data = BACKUP_MAGIC + protect_backup_bytes(data)
+        elif data.startswith(BACKUP_MAGIC):
+            data = protect_backup_bytes(data[len(BACKUP_MAGIC):], decrypt=True)
         os.makedirs(os.path.dirname(dst), exist_ok=True)
-        if os.path.exists(dst):
-            try:
-                os.chmod(dst, 0o777)
-            except Exception:
-                pass
-        shutil.copy2(src, dst)
-        return True
-    except Exception:
+        import tempfile
+        fd, pending = tempfile.mkstemp(prefix='.ittools-', dir=os.path.dirname(dst))
         try:
-            if os.path.exists(dst):
-                try:
-                    os.chmod(dst, 0o777)
-                except Exception:
-                    pass
-            # Fallback byte copy
-            with open(src, 'rb') as f_in:
-                data = f_in.read()
-            with open(dst, 'wb') as f_out:
-                f_out.write(data)
-            return True
-        except Exception:
-            return False
+            with os.fdopen(fd, 'wb') as stream:
+                stream.write(data)
+            os.replace(pending, dst)
+        finally:
+            if os.path.exists(pending):
+                os.unlink(pending)
+        return True
+    except Exception as exc:
+        raise RuntimeError('Không sao chép/giải mã được dữ liệu sao lưu; đã dừng để bảo vệ dữ liệu.') from exc
 
 
-def _copy_tree_safe(src, dst, ignore_patterns=None):
+def _copy_tree_safe(src, dst, ignore_patterns=None, protect=False):
     """Copies directory recursively skipping locks and heavy cache."""
     if not os.path.exists(src):
         return 0
@@ -447,7 +447,7 @@ def _copy_tree_safe(src, dst, ignore_patterns=None):
                 continue
             src_file = os.path.join(root, f)
             dst_file = os.path.join(dest_dir, f)
-            if _copy_file_safe(src_file, dst_file):
+            if _copy_file_safe(src_file, dst_file, protect=protect):
                 copied_count += 1
     return copied_count
 
@@ -479,6 +479,10 @@ def get_default_backup_dir():
 
 def backup_browser_data(selected_browsers, options, target_dir="", logger=None, progress_callback=None):
     """Performs full backup of selected browsers based on options with real-time progress callbacks."""
+    from functools import partial
+    # Every payload written by this backup operation is encrypted before disk write.
+    copy_file = partial(_copy_file_safe, protect=True)
+    copy_tree = partial(_copy_tree_safe, protect=True)
     definitions = get_browser_definitions()
     
     def log(msg, level="INFO"):
@@ -503,7 +507,8 @@ def backup_browser_data(selected_browsers, options, target_dir="", logger=None, 
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_folder_name = f"BrowserBackup_{timestamp}"
     backup_path = os.path.join(target_dir, backup_folder_name)
-    os.makedirs(backup_path, exist_ok=True)
+    os.makedirs(backup_path, exist_ok=False)
+    restrict_backup_folder(backup_path)
 
     report(5, "", "Khởi tạo thư mục sao lưu", f"Tạo thư mục: {backup_folder_name}", f"Bắt đầu sao lưu trình duyệt vào thư mục: {backup_path}...")
 
@@ -511,7 +516,8 @@ def backup_browser_data(selected_browsers, options, target_dir="", logger=None, 
         'timestamp': timestamp,
         'created_at': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         'browsers': {},
-        'options': options
+        'options': options,
+        'encryption': 'Windows DPAPI current user; restore with the same Windows account'
     }
 
     success_count = 0
@@ -552,14 +558,14 @@ def backup_browser_data(selected_browsers, options, target_dir="", logger=None, 
 
                 if options.get('full_profile'):
                     report(b_pct_start + int(b_range * 0.4), b_name, f"Sao lưu Toàn Bộ Hồ Sơ {pname}", f"Đang sao chép các tệp hồ sơ người dùng...", f"  ➜ Sao lưu Toàn Bộ Hồ Sơ (Full Profile) {pname}...")
-                    count = _copy_tree_safe(pd, pd_dest)
+                    count = copy_tree(pd, pd_dest)
                     b_manifest['files_backed_up'] += count
                 else:
                     if options.get('bookmarks'):
                         report(b_pct_start + int(b_range * 0.2), b_name, f"Sao lưu Dấu trang (Bookmarks)", f"{pname} - Đang sao chép Bookmarks...", None)
                         bm = os.path.join(pd, 'Bookmarks')
                         if os.path.exists(bm):
-                            _copy_file_safe(bm, os.path.join(pd_dest, 'Bookmarks'))
+                            copy_file(bm, os.path.join(pd_dest, 'Bookmarks'))
                             b_manifest['files_backed_up'] += 1
                             report(b_pct_start + int(b_range * 0.3), b_name, f"Đã lưu Bookmarks", f"{pname} - Bookmarks hoàn tất", f"  ✅ [Bookmarks] {b_name} ({pname})")
 
@@ -568,7 +574,7 @@ def backup_browser_data(selected_browsers, options, target_dir="", logger=None, 
                         for pass_file in ['Login Data', 'Login Data For Account', 'Web Data']:
                             pf = os.path.join(pd, pass_file)
                             if os.path.exists(pf):
-                                _copy_file_safe(pf, os.path.join(pd_dest, pass_file))
+                                copy_file(pf, os.path.join(pd_dest, pass_file))
                                 b_manifest['files_backed_up'] += 1
                         report(b_pct_start + int(b_range * 0.5), b_name, f"Đã lưu Mật khẩu", f"{pname} - Mật khẩu hoàn tất", f"  ✅ [Passwords & Login Data] {b_name} ({pname})")
 
@@ -576,7 +582,7 @@ def backup_browser_data(selected_browsers, options, target_dir="", logger=None, 
                         report(b_pct_start + int(b_range * 0.6), b_name, f"Sao lưu Lịch sử duyệt web", f"{pname} - Đang sao chép History...", None)
                         hf = os.path.join(pd, 'History')
                         if os.path.exists(hf):
-                            _copy_file_safe(hf, os.path.join(pd_dest, 'History'))
+                            copy_file(hf, os.path.join(pd_dest, 'History'))
                             b_manifest['files_backed_up'] += 1
                         report(b_pct_start + int(b_range * 0.7), b_name, f"Đã lưu Lịch sử", f"{pname} - History hoàn tất", f"  ✅ [History] {b_name} ({pname})")
 
@@ -584,7 +590,7 @@ def backup_browser_data(selected_browsers, options, target_dir="", logger=None, 
                         report(b_pct_start + int(b_range * 0.8), b_name, f"Sao lưu Tiện ích mở rộng", f"{pname} - Đang sao chép Extensions...", None)
                         ext_dir = os.path.join(pd, 'Extensions')
                         if os.path.exists(ext_dir):
-                            count = _copy_tree_safe(ext_dir, os.path.join(pd_dest, 'Extensions'))
+                            count = copy_tree(ext_dir, os.path.join(pd_dest, 'Extensions'))
                             b_manifest['files_backed_up'] += count
                         report(b_pct_start + int(b_range * 0.9), b_name, f"Đã lưu Tiện ích", f"{pname} - Extensions hoàn tất", f"  ✅ [Extensions] {b_name} ({pname})")
 
@@ -597,14 +603,14 @@ def backup_browser_data(selected_browsers, options, target_dir="", logger=None, 
 
                 if options.get('full_profile'):
                     report(b_pct_start + int(b_range * 0.5), b_name, f"Sao lưu Toàn Bộ Hồ Sơ Firefox {pname}", "Đang sao chép toàn bộ tệp profile...", f"  ➜ Sao lưu Toàn Bộ Hồ Sơ Firefox {pname}...")
-                    count = _copy_tree_safe(pd, pd_dest)
+                    count = copy_tree(pd, pd_dest)
                     b_manifest['files_backed_up'] += count
                 else:
                     if options.get('bookmarks') or options.get('history'):
                         for f in ['places.sqlite', 'favicons.sqlite']:
                             fp = os.path.join(pd, f)
                             if os.path.exists(fp):
-                                _copy_file_safe(fp, os.path.join(pd_dest, f))
+                                copy_file(fp, os.path.join(pd_dest, f))
                                 b_manifest['files_backed_up'] += 1
                         report(b_pct_start + int(b_range * 0.4), b_name, f"Đã lưu Bookmarks & History", f"Firefox {pname}", f"  ✅ [Bookmarks & History] Firefox {pname}")
 
@@ -612,7 +618,7 @@ def backup_browser_data(selected_browsers, options, target_dir="", logger=None, 
                         for f in ['key4.db', 'logins.json']:
                             fp = os.path.join(pd, f)
                             if os.path.exists(fp):
-                                _copy_file_safe(fp, os.path.join(pd_dest, f))
+                                copy_file(fp, os.path.join(pd_dest, f))
                                 b_manifest['files_backed_up'] += 1
                         report(b_pct_start + int(b_range * 0.8), b_name, f"Đã lưu Mật khẩu Firefox", f"Firefox {pname}", f"  ✅ [Passwords] Firefox {pname}")
 
@@ -620,14 +626,14 @@ def backup_browser_data(selected_browsers, options, target_dir="", logger=None, 
             pd_dest = os.path.join(b_backup_dir, 'Default')
             os.makedirs(pd_dest, exist_ok=True)
             if options.get('full_profile'):
-                count = _copy_tree_safe(root, pd_dest)
+                count = copy_tree(root, pd_dest)
                 b_manifest['files_backed_up'] += count
             else:
                 for target_file, opt_key in [('Bookmarks', 'bookmarks'), ('Login Data', 'passwords'), ('History', 'history')]:
                     if options.get(opt_key):
                         fp = os.path.join(root, target_file)
                         if os.path.exists(fp):
-                            _copy_file_safe(fp, os.path.join(pd_dest, target_file))
+                            copy_file(fp, os.path.join(pd_dest, target_file))
                             b_manifest['files_backed_up'] += 1
 
         manifest['browsers'][b_key] = b_manifest
@@ -679,15 +685,10 @@ def resolve_restore_plan(backup_folder, selected_browsers, definitions):
             matched_browser_by_parent = b_k
 
     # Determine candidate browser keys to examine
-    candidates = list(selected_browsers) if selected_browsers else []
-    if matched_browser_by_folder and matched_browser_by_folder not in candidates:
-        candidates.append(matched_browser_by_folder)
-    if matched_browser_by_parent and matched_browser_by_parent not in candidates:
-        candidates.append(matched_browser_by_parent)
-
+    candidates = list(selected_browsers) if isinstance(selected_browsers, (list, tuple)) else []
     valid_candidates = [b for b in candidates if b in definitions]
     if not valid_candidates:
-        valid_candidates = list(definitions.keys())
+        return {}
 
     for b_key in valid_candidates:
         info = definitions[b_key]
@@ -720,7 +721,7 @@ def resolve_restore_plan(backup_folder, selected_browsers, definitions):
 
         # 5. Fallback: norm_folder contains profile data (Default, Bookmarks, History, Login Data...)
         # and user only selected 1 browser or b_key is the first/only candidate
-        elif not src_dir and len(valid_candidates) == 1:
+        elif not src_dir and len(valid_candidates) == 1 and not (matched_browser_by_folder or matched_browser_by_parent):
             if os.path.isdir(os.path.join(norm_folder, 'Default')):
                 src_dir = norm_folder
             elif any(os.path.exists(os.path.join(norm_folder, x)) for x in ['Bookmarks', 'History', 'Login Data', 'Web Data', 'prefs.js']):
@@ -763,6 +764,10 @@ def resolve_restore_plan(backup_folder, selected_browsers, definitions):
 
 def restore_browser_data(backup_folder, selected_browsers, options=None, logger=None, progress_callback=None):
     """Restores browser data from backup folder with real-time progress callbacks."""
+    if options is None:
+        options = {'full_profile': True}
+    if not isinstance(options, dict) or not any(options.get(key) for key in ('bookmarks', 'passwords', 'history', 'extensions', 'full_profile')):
+        return {'success': False, 'message': 'Chưa chọn loại dữ liệu cần phục hồi.'}
     definitions = get_browser_definitions()
     
     def log(msg, level="INFO"):
@@ -825,13 +830,41 @@ def restore_browser_data(backup_folder, selected_browsers, options=None, logger=
             step_sub_pct = b_pct_start + int((p_idx + 0.5) / len(profiles) * (b_pct_end - b_pct_start))
             report(step_sub_pct, b_name, f"Đang phục hồi hồ sơ {target_profile_name}", f"Sao chép dữ liệu từ {os.path.basename(src_p)}...", None)
 
-            count = _copy_tree_safe(src_p, target_profile)
+            if options.get('full_profile'):
+                count = _copy_tree_safe(src_p, target_profile)
+            else:
+                selected_files = set()
+                if info['type'] == 'firefox':
+                    if options.get('bookmarks') or options.get('history'):
+                        selected_files.update(('places.sqlite', 'favicons.sqlite'))
+                    if options.get('passwords'):
+                        selected_files.update(('key4.db', 'logins.json'))
+                    if options.get('extensions'):
+                        selected_files.update(('extensions', 'extensions.json'))
+                else:
+                    if options.get('bookmarks'):
+                        selected_files.add('Bookmarks')
+                    if options.get('history'):
+                        selected_files.add('History')
+                    if options.get('passwords'):
+                        selected_files.update(('Login Data', 'Login Data For Account', 'Web Data'))
+                    if options.get('extensions'):
+                        selected_files.add('Extensions')
+                count = 0
+                for filename in sorted(selected_files):
+                    source = os.path.join(src_p, filename)
+                    destination = os.path.join(target_profile, filename)
+                    if os.path.isdir(source):
+                        count += _copy_tree_safe(source, destination)
+                    elif os.path.isfile(source):
+                        count += int(_copy_file_safe(source, destination))
             browser_files_count += count
             
             step_done_pct = b_pct_start + int((p_idx + 1) / len(profiles) * (b_pct_end - b_pct_start))
             report(step_done_pct, b_name, f"Đã phục hồi {target_profile_name}", f"Đã sao chép {count} tệp tin", f"  ✅ [Khôi phục] {b_name} -> {target_profile_name} ({count} tệp tin)")
 
-        restored_count += 1
+        if browser_files_count > 0:
+            restored_count += 1
         report(b_pct_end, b_name, f"Hoàn tất {b_name}", f"Đã phục hồi {browser_files_count} tệp tin cho {b_name}", f"Hoàn tất phục hồi {b_name} ({browser_files_count} tệp)")
 
     if restored_count == 0:

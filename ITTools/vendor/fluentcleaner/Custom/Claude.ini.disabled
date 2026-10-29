@@ -1,0 +1,51 @@
+[Claude]
+[Claude Code Backups *]
+Section=Claude
+DetectFile=%UserProfile%\.claude
+Default=False
+Warning=Removes Claude Code backup files.
+FileKey1=%UserProfile%\.claude\backups|*|RECURSE
+
+[Claude Code Cache *]
+Section=Claude
+DetectFile=%UserProfile%\.claude
+Default=False
+FileKey1=%UserProfile%\.claude\cache|*|RECURSE
+FileKey2=%UserProfile%\.claude\plugins\cache|*|RECURSE
+
+[Claude Code File History *]
+Section=Claude
+DetectFile=%UserProfile%\.claude
+Default=False
+Warning=Removes pre-edit snapshots used by the /restore command.
+FileKey1=%UserProfile%\.claude\file-history|*|RECURSE
+
+[Claude Code Logs *]
+Section=Claude
+DetectFile=%UserProfile%\.claude
+Default=False
+FileKey1=%UserProfile%\.claude\debug|*|RECURSE
+FileKey2=%UserProfile%\.claude\logs|*|RECURSE
+FileKey3=%UserProfile%\.claude|*.log
+
+[Claude Code Sessions *]
+Section=Claude
+DetectFile=%UserProfile%\.claude
+Default=False
+Warning=Removes conversation history. Resume, continue and rewind will no longer work for past sessions.
+FileKey1=%UserProfile%\.claude\projects|*|RECURSE
+FileKey2=%UserProfile%\.claude\sessions|*|RECURSE
+FileKey3=%UserProfile%\.claude\session-env|*|RECURSE
+
+[Claude Code Shell Snapshots *]
+Section=Claude
+DetectFile=%UserProfile%\.claude
+Default=False
+Warning=Removes captured shell environments used by Claude Code.
+FileKey1=%UserProfile%\.claude\shell-snapshots|*|RECURSE
+
+[Claude Code Temporary Files *]
+Section=Claude
+DetectFile=%UserProfile%\.claude
+Default=False
+FileKey1=%UserProfile%\.claude|*.tmp;*.temp|RECURSE

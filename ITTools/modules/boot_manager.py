@@ -784,11 +784,11 @@ def add_wim_boot_entry(wim_path, boot_name="WinPE Boot", target_drive="C:"):
 
 def delete_boot_entry(guid):
     """Deletes a BCD entry by GUID."""
-    if not guid:
-        return {"success": False, "message": "Vui lòng chọn mục Boot cần xóa!"}
+    if not isinstance(guid, str) or not re.fullmatch(r"\{[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\}", guid):
+        return {"success": False, "message": "Chỉ xóa mục Boot có GUID đầy đủ hợp lệ."}
     try:
         res = subprocess.run(['bcdedit', '/delete', guid, '/f'], capture_output=True, text=True, encoding='utf-8', errors='ignore')
-        if res.returncode == 0 or "successfully" in res.stdout.lower() or "thành công" in res.stdout.lower():
+        if res.returncode == 0:
             return {"success": True, "message": f"Đã xóa mục boot {guid} thành công!"}
         else:
             return {"success": False, "message": res.stderr.strip() or res.stdout.strip()}
@@ -811,6 +811,8 @@ def set_default_boot(guid):
 def set_boot_timeout(seconds):
     """Sets boot menu timeout in seconds."""
     try:
+        if isinstance(seconds, bool) or not re.fullmatch(r'\d{1,3}', str(seconds)):
+            return {"success": False, "message": "Thời gian chờ phải là số nguyên từ 0 đến 999 giây."}
         sec = int(seconds)
         res = subprocess.run(['bcdedit', '/timeout', str(sec)], capture_output=True, text=True, encoding='utf-8', errors='ignore')
         if res.returncode == 0:

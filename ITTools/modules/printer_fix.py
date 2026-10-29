@@ -131,7 +131,7 @@ def _delete_cnbjnp_ports(log):
 
 
 def _set_rpc_registry(log):
-    _run_cmd(r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Print" /v RpcAuthnLevelPrivacyEnabled /t REG_DWORD /d 0 /f', log)
+    _run_cmd(r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Print" /v RpcAuthnLevelPrivacyEnabled /t REG_DWORD /d 1 /f', log)
     _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\RPC" /v RpcOverNamedPipes /t REG_DWORD /d 1 /f', log)
     _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\RPC" /v RpcOverTcp /t REG_DWORD /d 1 /f', log)
     _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\RPC" /v RpcProtocols /t REG_DWORD /d 7 /f', log)
@@ -235,9 +235,9 @@ def fix_cannot_connect(log):
 
 def fix_policy_connect(log):
     _lsep(log, "Fix Policy Connect - GP Block")
-    _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v RestrictDriverInstallationToAdministrators /t REG_DWORD /d 0 /f', log)
-    _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v NoWarningNoElevationOnInstall /t REG_DWORD /d 1 /f', log)
-    _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v UpdatePromptSettings /t REG_DWORD /d 2 /f', log)
+    _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v RestrictDriverInstallationToAdministrators /t REG_DWORD /d 1 /f', log)
+    _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v NoWarningNoElevationOnInstall /t REG_DWORD /d 0 /f', log)
+    _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v UpdatePromptSettings /t REG_DWORD /d 0 /f', log)
     _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v InForest /t REG_DWORD /d 0 /f', log)
     _restart_spooler(log); _lo(log, "Đã gỡ chặn Policy. Thử kết nối lại.")
 
@@ -424,7 +424,7 @@ def reset_printer_ports(log):
 def set_local_connection(log):
     _lsep(log, "Set LocalConnection - Kết Nối Không Mật Khẩu")
     _run_cmd(r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v forceguest /t REG_DWORD /d 0 /f', log)
-    _run_cmd(r'reg add "HKLM\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters" /v AllowInsecureGuestAuth /t REG_DWORD /d 1 /f', log)
+    _run_cmd(r'reg add "HKLM\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters" /v AllowInsecureGuestAuth /t REG_DWORD /d 0 /f', log)
     _set_rpc_registry(log); _restart_spooler(log)
     _lo(log, "Set LocalConnection hoàn tất.")
 
@@ -435,13 +435,13 @@ def auto_fix_15_buoc(log):
         ("Bật Windows Firewall",          lambda: (_run_cmd("sc config MpsSvc start= auto", log), _run_cmd("sc start MpsSvc", log))),
         ("Mở FW File & Printer Sharing",  lambda: _run_cmd('netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=Yes', log)),
         ("Mở FW Network Discovery",       lambda: _run_cmd('netsh advfirewall firewall set rule group="Network Discovery" new enable=Yes', log)),
-        ("RPC Privacy Level = 0",         lambda: _run_cmd(r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Print" /v RpcAuthnLevelPrivacyEnabled /t REG_DWORD /d 0 /f', log)),
+        ("RPC Privacy Level = 1",         lambda: _run_cmd(r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Print" /v RpcAuthnLevelPrivacyEnabled /t REG_DWORD /d 1 /f', log)),
         ("RPC Over Named Pipes = 1",      lambda: _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\RPC" /v RpcOverNamedPipes /t REG_DWORD /d 1 /f', log)),
         ("RPC Over TCP = 1",              lambda: _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\RPC" /v RpcOverTcp /t REG_DWORD /d 1 /f', log)),
-        ("Point&Print No Restriction",    lambda: _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v RestrictDriverInstallationToAdministrators /t REG_DWORD /d 0 /f', log)),
-        ("Point&Print No Warning",        lambda: _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v NoWarningNoElevationOnInstall /t REG_DWORD /d 1 /f', log)),
+        ("Yêu cầu quyền Admin khi cài driver",    lambda: _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v RestrictDriverInstallationToAdministrators /t REG_DWORD /d 1 /f', log)),
+        ("Giữ cảnh báo khi cài driver",        lambda: _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v NoWarningNoElevationOnInstall /t REG_DWORD /d 0 /f', log)),
         ("ForceGuest = 0",                lambda: _run_cmd(r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v forceguest /t REG_DWORD /d 0 /f', log)),
-        ("AllowInsecureGuestAuth = 1",    lambda: _run_cmd(r'reg add "HKLM\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters" /v AllowInsecureGuestAuth /t REG_DWORD /d 1 /f', log)),
+        ("Chặn Guest không an toàn",    lambda: _run_cmd(r'reg add "HKLM\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters" /v AllowInsecureGuestAuth /t REG_DWORD /d 0 /f', log)),
         ("Copy mscms.dll",                lambda: _copy_mscms(log)),
         ("Bật LanmanWorkstation/Server",  lambda: [(_run_cmd(f"sc config {s} start= auto", log), _run_cmd(f"sc start {s}", log)) for s in ["LanmanWorkstation", "LanmanServer"]]),
         ("Dừng & xóa hàng đợi in",       lambda: (_run_cmd("net stop spooler", log), _run_cmd(f'del /q /f "{SPOOL_DIR}\\*.*"', log))),
@@ -497,333 +497,35 @@ def get_pe_file_version(filepath):
 
 
 def get_clean_spooler_files():
-    """
-    Locates clean, version-compatible spooler files for the current Windows system.
-    - If Windows 10 (build < 22000): prioritizes assets/spooler_clean_win10.
-    - If Windows 11 (build >= 22000): prioritizes assets/spooler_clean.
-    Falls back to WinSxS component store or System32 if needed.
-    """
-    needed = ["win32spl.dll", "localspl.dll", "spoolsv.exe"]
-    clean_files = {}
-
-    import platform
-    is_64 = sys.maxsize > 2**32 or "64" in platform.machine()
-    arch_prefix = "amd64" if is_64 else "x86"
-    try:
-        os_ver = sys.getwindowsversion()
-        os_build = os_ver.build
-    except Exception:
-        os_build = 19045
-
-    is_win10 = (os_build < 22000)
-
-    # 1. First priority: Check bundled / local clean asset directory matching the OS
-    folder_name = "spooler_clean_win10" if is_win10 else "spooler_clean"
-
-    search_dirs = []
-    meipass = getattr(sys, '_MEIPASS', None)
-    if meipass:
-        search_dirs.append(os.path.join(meipass, "assets", folder_name))
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    search_dirs.append(os.path.join(base_dir, "assets", folder_name))
-    search_dirs.append(os.path.join(os.getcwd(), "ITTools", "assets", folder_name))
-    search_dirs.append(os.path.join(os.getcwd(), "assets", folder_name))
-    if getattr(sys, 'frozen', False):
-        exe_dir = os.path.dirname(os.path.abspath(sys.executable))
-        search_dirs.append(os.path.join(exe_dir, "assets", folder_name))
-
-    for d in search_dirs:
-        if os.path.exists(d):
-            for f in needed:
-                if f not in clean_files:
-                    p = os.path.join(d, f)
-                    if os.path.exists(p) and os.path.getsize(p) > 0:
-                        clean_files[f] = p
-
-    # 2. Check WinSxS component store matching the exact architecture if any file is missing
-    winsxs = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "WinSxS")
-    if len(clean_files) < len(needed) and os.path.exists(winsxs):
-        try:
-            for entry in os.scandir(winsxs):
-                if not entry.is_dir():
-                    continue
-                base = entry.name.lower()
-                if not base.startswith(arch_prefix):
-                    continue
-                for f in needed:
-                    if f not in clean_files:
-                        full_p = os.path.join(entry.path, f)
-                        if os.path.exists(full_p) and os.path.getsize(full_p) > 0:
-                            f_ver = get_pe_file_version(full_p)
-                            if f_ver and (f_ver[2] < 22000) == is_win10:
-                                clean_files[f] = full_p
-                if len(clean_files) == len(needed):
-                    break
-        except Exception:
-            pass
-
-    # 3. Check System32 backups (.old) if they match OS
-    sys32 = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32")
-    for f in needed:
-        if f not in clean_files:
-            old_p = os.path.join(sys32, f"{f}.old")
-            if os.path.exists(old_p) and os.path.getsize(old_p) > 0:
-                f_ver = get_pe_file_version(old_p)
-                if f_ver and (f_ver[2] < 22000) == is_win10:
-                    clean_files[f] = old_p
-
-    # 4. Fallback to current System32 files
-    for f in needed:
-        if f not in clean_files:
-            p = os.path.join(sys32, f)
-            if os.path.exists(p) and os.path.getsize(p) > 0:
-                clean_files[f] = p
-
-    return clean_files
+    """Bundled system replacements are no longer trusted or used."""
+    return {}
 
 
 def one_click_fix_all_lan_files(log=None, progress_cb=None):
-    r"""
-    ONE CLICK FIX TẤT CẢ LỖI MÁY IN MẠNG LAN
-    4 Bước chuẩn hóa:
-    [BƯỚC 1/4] Cấp quyền Takeown, sao lưu .old & nạp RpcAuthnLevelPrivacyEnabled=0
-    [BƯỚC 2/4] Nạp 3 tệp hệ thống sạch vào C:\Windows\System32...
-    [BƯỚC 3/4] Cấu hình chế độ Automatic và khởi động lại dịch vụ Print Spooler...
-    [BƯỚC 4/4] Hoàn tất sửa lỗi — Bạn có thể thử kết nối lại máy in mạng LAN
-    """
+    """Repair protected Windows files with SFC, without weakening printer policy."""
     def emit(text, tag="info"):
         if callable(log):
-            try:
-                log(text, tag)
-            except Exception:
-                pass
+            log(text, tag)
         elif hasattr(log, "insert"):
-            tag_map = {"info": "info", "ok": "ok", "success": "ok", "warn": "warn", "error": "error", "step": "step", "cmd": "info"}
-            tag_name = tag_map.get(tag.lower(), "info")
-            log.insert(tk.END, f"{text}\n", tag_name)
-            if hasattr(log, "see"):
-                log.see(tk.END)
-        else:
-            print(text)
-
-    def update_prog(step, percentage, step_status, msg, completed=False, success=True):
+            log.insert(tk.END, text + "\n", tag)
+    def progress(step, percent, message, completed=False, success=True):
         if callable(progress_cb):
-            try:
-                progress_cb({
-                    "step": step,
-                    "percentage": percentage,
-                    "step_status": step_status,
-                    "message": msg,
-                    "completed": completed,
-                    "success": success
-                })
-            except Exception:
-                pass
-
-    flags = 0x08000000 if sys.platform == "win32" else 0
-    def _run_sil(cmd):
-        try:
-            return subprocess.run(cmd, shell=True, capture_output=True, text=True,
-                                  creationflags=flags, encoding="utf-8", errors="ignore")
-        except Exception:
-            return None
-
-    sys32 = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32")
-    printers_dir = os.path.join(sys32, "spool", "PRINTERS")
-
-    # ── [BƯỚC 1/4] Cấp quyền Takeown, sao lưu an toàn & nạp Registry ──────────
-    update_prog(1, 10, ["running", "pending", "pending", "pending"], "Đang cấp quyền Takeown & nạp Registry...")
-
-    # Ngăn chặn lỗi Error 1053 Service Timeout bằng cách nâng timeout lên 60 giây
-    _run_sil(r'reg add "HKLM\SYSTEM\CurrentControlSet\Control" /v ServicesPipeTimeout /t REG_DWORD /d 60000 /f')
-
-    # Dừng dịch vụ Print Spooler trước để giải phóng khóa tệp an toàn
-    _run_sil("net stop spooler")
-    time.sleep(0.5)
-    _run_sil("taskkill /f /im spoolsv.exe")
-    time.sleep(0.5)
-
-    # Dọn dẹp hàng đợi in kẹt trong PRINTERS (nguyên nhân hàng đầu gây crash / hang spoolsv.exe)
-    if os.path.exists(printers_dir):
-        _run_sil(f'del /f /q /a "{printers_dir}\\*.*"')
-    else:
-        try:
-            os.makedirs(printers_dir, exist_ok=True)
-        except Exception:
-            pass
-
-    # Cấp quyền & sao lưu .old cho 3 tệp hệ thống
-    target_files = ["spoolsv.exe", "win32spl.dll", "localspl.dll"]
-    for fname in target_files:
-        fpath = os.path.join(sys32, fname)
-        oldpath = os.path.join(sys32, f"{fname}.old")
-
-        takeown_cmd = f'takeown /A /F "{fpath}"'
-        icacls_cmd = f'icacls "{fpath}" /grant builtin\\administrators:F /grant SYSTEM:F'
-        ren_cmd = f'ren "{fpath}" {fname}.old'
-
-        if fname == "spoolsv.exe":
-            emit(f"▶ {takeown_cmd}", "cmd")
-            emit(f"▶ {icacls_cmd}", "cmd")
-            emit(f"▶ {ren_cmd}", "cmd")
-
-        if os.path.exists(fpath):
-            _run_sil(takeown_cmd)
-            _run_sil(icacls_cmd)
-            # Sao lưu sang .old nếu chưa có hoặc tạo mới
-            try:
-                if not os.path.exists(oldpath) or os.path.getsize(oldpath) == 0:
-                    shutil.copy2(fpath, oldpath)
-            except Exception:
-                _run_sil(f'copy /y "{fpath}" "{oldpath}"')
-
-    # Nạp Registry RpcAuthnLevelPrivacyEnabled = 0
-    reg_cmd = r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Print" /v RpcAuthnLevelPrivacyEnabled /t REG_DWORD /d 0 /f'
-    emit(f"▶ {reg_cmd}", "cmd")
-    _run_sil(reg_cmd)
-
-    # Cấu hình đầy đủ các registry bổ trợ in mạng LAN
-    _run_sil(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\RPC" /v RpcOverNamedPipes /t REG_DWORD /d 1 /f')
-    _run_sil(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\RPC" /v RpcOverTcp /t REG_DWORD /d 1 /f')
-    _run_sil(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\RPC" /v RpcProtocols /t REG_DWORD /d 7 /f')
-    _run_sil(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v RestrictDriverInstallationToAdministrators /t REG_DWORD /d 0 /f')
-    _run_sil(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v NoWarningNoElevationOnInstall /t REG_DWORD /d 1 /f')
-    _run_sil(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v UpdatePromptSettings /t REG_DWORD /d 2 /f')
-    _run_sil(r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v forceguest /t REG_DWORD /d 0 /f')
-    _run_sil(r'reg add "HKLM\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters" /v AllowInsecureGuestAuth /t REG_DWORD /d 1 /f')
-
-    # Chuẩn hóa cấu hình dịch vụ Spooler trong registry
-    _run_sil(r'reg add "HKLM\SYSTEM\CurrentControlSet\Services\Spooler" /v ImagePath /t REG_EXPAND_SZ /d "%SystemRoot%\System32\spoolsv.exe" /f')
-    _run_sil(r'reg add "HKLM\SYSTEM\CurrentControlSet\Services\Spooler" /v ObjectName /t REG_SZ /d "LocalSystem" /f')
-    _run_sil(r'reg add "HKLM\SYSTEM\CurrentControlSet\Services\Spooler" /v Start /t REG_DWORD /d 2 /f')
-    _run_sil(r'reg add "HKLM\SYSTEM\CurrentControlSet\Services\Spooler" /v DependOnService /t REG_MULTI_SZ /d "RPCSS\0http" /f')
-    _run_sil("sc sdset spooler D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)(A;;CCLCSWLOCRRC;;;IU)(A;;CCLCSWLOCRRC;;;SU)")
-
-    # Bật firewall chia sẻ máy in và dò tìm mạng
-    _run_sil('netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=Yes')
-    _run_sil('netsh advfirewall firewall set rule group="Network Discovery" new enable=Yes')
-    _run_sil("sc config MpsSvc start= auto")
-    _run_sil("sc start MpsSvc")
-
-    emit("✓ Hoàn tất cấp quyền Takeown/icacls và thiết lập Registry RpcAuthnLevelPrivacyEnabled = 0.", "ok")
-    update_prog(1, 25, ["done", "running", "pending", "pending"], "Đã cấp quyền, sao lưu .old & nạp RpcAuthnLevelPrivacyEnabled = 0 thành công")
-    time.sleep(0.3)
-
-    # ── [BƯỚC 2/4] Nạp 3 tệp hệ thống sạch vào C:\Windows\System32 ─────────────
+            progress_cb({"step": step, "percentage": percent, "step_status":
+                         ["done"] * 4 if completed else ["running", "pending", "pending", "pending"],
+                         "message": message, "completed": completed, "success": success})
+    progress(1, 5, "Đang chạy Windows SFC; có thể mất nhiều phút...")
+    emit("Dùng SFC chính thức; không thay binary đóng gói hoặc hạ bảo mật máy in.")
     try:
-        os_ver = sys.getwindowsversion()
-        os_build = os_ver.build
-    except Exception:
-        os_build = 19045
-    is_win10 = (os_build < 22000)
-    os_name = "Windows 10" if is_win10 else "Windows 11"
-
-    emit(f"⏳ [BƯỚC 2/4] Phát hiện {os_name} — Nạp bộ 3 tệp hệ thống sạch chuẩn {os_name} vào C:\\Windows\\System32...", "step")
-    clean_map = get_clean_spooler_files()
-
-    for fname in ["win32spl.dll", "localspl.dll", "spoolsv.exe"]:
-        dest = os.path.join(sys32, fname)
-        src = clean_map.get(fname)
-
-        need_replace = False
-        if not os.path.exists(dest) or os.path.getsize(dest) == 0:
-            need_replace = True
-        else:
-            cur_ver = get_pe_file_version(dest)
-            if is_win10:
-                # Nếu là Windows 10: nếu file hiện tại bị dính file Win11 (build >= 22000) hoặc lỗi
-                if not cur_ver or cur_ver[2] >= 22000:
-                    need_replace = True
-                elif src and os.path.exists(src):
-                    src_ver = get_pe_file_version(src)
-                    if src_ver and cur_ver != src_ver:
-                        need_replace = True
-            else:
-                # Nếu là Windows 11: nếu file hiện tại bị dính file Win10 (build < 22000)
-                if not cur_ver or cur_ver[2] < 22000:
-                    need_replace = True
-
-        if need_replace and src and os.path.exists(src) and os.path.abspath(src).lower() != os.path.abspath(dest).lower():
-            try:
-                shutil.copy2(src, dest)
-            except Exception:
-                _run_sil(f'copy /y "{src}" "{dest}"')
-
-        # Phân quyền thực thi chuẩn cho file hệ thống
-        _run_sil(f'icacls "{dest}" /grant "NT AUTHORITY\\SYSTEM:(F)" /grant "BUILTIN\\Administrators:(F)" /grant "BUILTIN\\Users:(RX)" /grant "*S-1-15-2-1:(RX)"')
-
-        emit(f"✓ Đã sao chép: {fname} -> {dest}", "ok")
-        time.sleep(0.15)
-
-    # Nạp mscms.dll vào thư mục driver máy in (khắc phục lỗi 0x0000007e, 0x0000007c)
-    mscms_src = os.path.join(sys32, "mscms.dll")
-    if os.path.exists(mscms_src):
-        for dpath in [os.path.join(sys32, "spool", "drivers", "x64", "3"),
-                      os.path.join(sys32, "spool", "drivers", "w32x86", "3")]:
-            if os.path.exists(dpath):
-                dest_mscms = os.path.join(dpath, "mscms.dll")
-                if not os.path.exists(dest_mscms):
-                    try:
-                        shutil.copy2(mscms_src, dest_mscms)
-                    except Exception:
-                        pass
-
-    emit("✓ Đã nạp đầy đủ 3/3 tệp hệ thống sạch vào System32.", "ok")
-    update_prog(2, 60, ["done", "done", "running", "pending"], "Đã nạp thành công 3/3 tệp vào C:\\Windows\\System32")
-    time.sleep(0.3)
-
-    # ── [BƯỚC 3/4] Cấu hình Automatic & khởi động lại Spooler ──────────────────
-    emit("⏳ [BƯỚC 3/4] Cấu hình chế độ Automatic và khởi động lại dịch vụ Print Spooler...", "step")
-
-    # Cấu hình Automatic cho tất cả các dịch vụ mạng & in ấn
-    for svc in ["RpcSs", "http", "LanmanWorkstation", "LanmanServer", "fdPHost", "FDResPub", "SSDPSRV", "upnphost", "spooler"]:
-        _run_sil(f"sc config {svc} start= auto")
-
-    # Khởi động các dịch vụ tiền đề trước
-    for svc in ["RpcSs", "LanmanWorkstation", "LanmanServer", "fdPHost", "FDResPub", "SSDPSRV", "upnphost"]:
-        _run_sil(f"sc start {svc}")
-        _run_sil(f"net start {svc}")
-
-    # Khởi động dịch vụ Print Spooler
-    _run_sil("net start spooler")
-    _run_sil("sc start spooler")
-
-    def _is_running():
-        r = _run_sil("sc query spooler")
-        return bool(r and "STATE" in r.stdout and "RUNNING" in r.stdout)
-
-    is_running = False
-    for _ in range(15):
-        if _is_running():
-            is_running = True
-            break
-        time.sleep(0.5)
-
-    if not is_running:
-        emit("⚠️ Đang tự động kiểm tra và phục hồi dịch vụ Spooler...", "warn")
-        _run_sil(f'del /f /q /a "{printers_dir}\\*.*"')
-        _run_sil(f'sfc /scanfile="{os.path.join(sys32, "spoolsv.exe")}"')
-        _run_sil("sc config spooler start= auto")
-        _run_sil("net start spooler")
-        time.sleep(1.0)
-        for _ in range(10):
-            if _is_running():
-                is_running = True
-                break
-            time.sleep(0.5)
-
-    if is_running:
-        emit("✓ Dịch vụ Print Spooler đã được cấu hình Automatic và đang chạy bình thường.", "ok")
-    else:
-        emit("⚠️ Dịch vụ Print Spooler đang khởi tạo. Bạn có thể khởi động lại máy để hoàn tất áp dụng.", "warn")
-
-    update_prog(3, 85, ["done", "done", "done", "running"], "Đã cấu hình tự động & khởi động Print Spooler thành công")
-    time.sleep(0.3)
-
-    # ── [BƯỚC 4/4] Hoàn tất sửa lỗi ──────────────────────────────────────────
-    emit("🚀 [HOÀN TẤT] Bạn có thể thử kết nối lại máy in mạng LAN.", "ok")
-    emit("🔥 [SUCCESS] Quá trình Fix lỗi Print Spooler và nạp 3 file sạch đã thành công 100%!", "ok")
-    update_prog(4, 100, ["done", "done", "done", "done"], "Hoàn tất sửa lỗi — Bạn có thể thử kết nối lại máy in mạng LAN", completed=True, success=True)
+        result = subprocess.run(['sfc.exe', '/scannow'], capture_output=True, timeout=1800)
+        success = result.returncode == 0
+        message = ("SFC đã hoàn tất. Hãy kiểm tra CBS.log và thử in lại." if success else
+                   f"SFC không hoàn tất thành công (mã {result.returncode}). Kiểm tra CBS.log hoặc dùng DISM chính thức.")
+        emit(message, "ok" if success else "error")
+        progress(4, 100, message, True, success)
+    except Exception as exc:
+        message = f"Không thể hoàn tất SFC: {exc}"
+        emit(message, "error")
+        progress(4, 100, message, True, False)
 
 
 def fix_canon_2900(log):
@@ -844,9 +546,9 @@ def unlock_share_printer(log):
     _lsep(log, "Unlock Share Printer - Gỡ Khóa Chia Sẻ")
     _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers" /v DisableHTTPPrinting /t REG_DWORD /d 0 /f', log)
     _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers" /v DisablePrinterAdmin /t REG_DWORD /d 0 /f', log)
-    _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v RestrictDriverInstallationToAdministrators /t REG_DWORD /d 0 /f', log)
-    _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v NoWarningNoElevationOnInstall /t REG_DWORD /d 1 /f', log)
-    _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v UpdatePromptSettings /t REG_DWORD /d 2 /f', log)
+    _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v RestrictDriverInstallationToAdministrators /t REG_DWORD /d 1 /f', log)
+    _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v NoWarningNoElevationOnInstall /t REG_DWORD /d 0 /f', log)
+    _run_cmd(r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v UpdatePromptSettings /t REG_DWORD /d 0 /f', log)
     _restart_spooler(log); _lo(log, "Unlock Share Printer hoàn tất.")
 
 

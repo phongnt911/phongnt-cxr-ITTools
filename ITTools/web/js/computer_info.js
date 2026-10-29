@@ -524,6 +524,9 @@ Object.assign(AppController.prototype, {
   },
 
   async runModule(moduleName, action) {
+    if (moduleName === 'server_tools') {
+      return action === 'open' ? this.openServerToolsGui() : this.loadServerTools();
+    }
     this.addLog("info", `Dang chay module ${moduleName} (${action})...`);
     if (window.pywebview && window.pywebview.api) {
       const res = await window.pywebview.api.run_tool_module(moduleName, action);

@@ -1,0 +1,12 @@
+{
+  "version": "1.0.3",
+  "date": "2026-10-27",
+  "exe_sha256": "4CDE910CB76F59B80E8DBC0F36359924B127540DA9CD84F0E88D712A8980146F",
+  "zip_sha256": "E895589FCB053E239FABF7071FB59C7B590E53E14FB57ADAF7CC8FCC7B813954",
+  "zip_size": 77890088,
+  "runtime_checks": 45,
+  "python_tests": 48,
+  "gui_window": "IT Tool / SAGS-CXR 2026 ver 1.0.3",
+  "gui_responding": true,
+  "zip_integrity_verified": true
+}

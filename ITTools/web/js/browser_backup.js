@@ -160,7 +160,7 @@ Object.assign(AppController.prototype, {
   getBrowserBackupOptions() {
     return {
       bookmarks: document.getElementById("bb-opt-bookmarks")?.checked ?? true,
-      passwords: document.getElementById("bb-opt-passwords")?.checked ?? true,
+      passwords: document.getElementById("bb-opt-passwords")?.checked ?? false,
       history: document.getElementById("bb-opt-history")?.checked ?? true,
       extensions: document.getElementById("bb-opt-extensions")?.checked ?? false,
       full_profile: document.getElementById("bb-opt-full-profile")?.checked ?? false
@@ -222,9 +222,12 @@ Object.assign(AppController.prototype, {
       if (p.logs.length === 0) {
         logBox.innerHTML = `<div>[${p.mode === 'backup' ? 'Sao Lưu' : 'Phục Hồi'}] Đang thực hiện...</div>`;
       } else {
-        logBox.innerHTML = p.logs.map(l => {
-          return `<div><span style="color: #94a3b8;">[${l.time}]</span> ${l.msg}</div>`;
-        }).join("");
+        logBox.replaceChildren();
+        p.logs.forEach(entry => {
+          const line = document.createElement('div');
+          line.textContent = `[${entry.time}] ${entry.msg}`;
+          logBox.appendChild(line);
+        });
         logBox.scrollTop = logBox.scrollHeight;
       }
     }
@@ -264,6 +267,7 @@ Object.assign(AppController.prototype, {
       return;
     }
 
+    if (!confirm("Bản sao lưu mới được mã hóa và chỉ khôi phục bằng cùng tài khoản Windows. Không dùng bản này để chuyển máy hoặc cài lại Windows. Tiếp tục?")) return;
     const options = this.getBrowserBackupOptions();
     const targetDir = document.getElementById("bb-target-dir-input")?.value?.trim() || "";
 

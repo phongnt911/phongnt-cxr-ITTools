@@ -212,48 +212,39 @@ def get_network_adapters():
 
 def apply_ip_settings(adapter, mode, ip="", mask="255.255.255.0", gateway="", dns1="", dns2=""):
     """Applies IP/DHCP settings to a specified network adapter via netsh."""
-    if not adapter:
-        return {"success": False, "message": "Chưa chọn card mạng (Adapter)."}
-
     try:
-        if mode == "dhcp":
-            cmd_ip = f'netsh interface ip set address name="{adapter}" source=dhcp'
-            cmd_dns = f'netsh interface ip set dns name="{adapter}" source=dhcp'
-            r1 = subprocess.run(cmd_ip, shell=True, capture_output=True, text=True, encoding='utf-8', errors='replace')
-            r2 = subprocess.run(cmd_dns, shell=True, capture_output=True, text=True, encoding='utf-8', errors='replace')
-            if r1.returncode != 0:
-                err_msg = r1.stderr.strip() or r1.stdout.strip()
-                return {"success": False, "message": f"Lỗi đặt IP DHCP cho '{adapter}': {err_msg}"}
-            return {
-                "success": True,
-                "message": f"Đã chuyển card mạng '{adapter}' sang chế độ DHCP (Tự động) thành công!"
-            }
+        if not isinstance(adapter, str) or not adapter.strip() or any(c in adapter for c in '\0\r\n'):
+            raise ValueError("Chưa chọn card mạng hợp lệ.")
+        if mode not in ('dhcp', 'static'):
+            raise ValueError("Chế độ phải là dhcp hoặc static.")
+        commands = []
+        base = ['netsh', 'interface', 'ip']
+        if mode == 'dhcp':
+            commands = [base + ['set', 'address', f'name={adapter}', 'source=dhcp'],
+                        base + ['set', 'dns', f'name={adapter}', 'source=dhcp']]
         else:
-            if not ip or not mask:
-                return {"success": False, "message": "Vui lòng nhập đầy đủ Địa chỉ IP và Subnet Mask!"}
-
-            cmd_ip = f'netsh interface ip set address name="{adapter}" static {ip} {mask}'
-            if gateway and gateway.strip():
-                cmd_ip += f' {gateway.strip()}'
-
-            r_ip = subprocess.run(cmd_ip, shell=True, capture_output=True, text=True, encoding='utf-8', errors='replace')
-            if r_ip.returncode != 0:
-                err_msg = r_ip.stderr.strip() or r_ip.stdout.strip()
-                return {"success": False, "message": f"Lỗi đặt IP tĩnh cho '{adapter}': {err_msg}"}
-
-            if dns1 and dns1.strip():
-                cmd_dns1 = f'netsh interface ip set dns name="{adapter}" static {dns1.strip()}'
-                subprocess.run(cmd_dns1, shell=True, capture_output=True, text=True, encoding='utf-8', errors='replace')
-                if dns2 and dns2.strip():
-                    cmd_dns2 = f'netsh interface ip add dns name="{adapter}" {dns2.strip()} index=2'
-                    subprocess.run(cmd_dns2, shell=True, capture_output=True, text=True, encoding='utf-8', errors='replace')
-
-            return {
-                "success": True,
-                "message": f"Đã cài đặt thành công IP Tĩnh {ip} cho card mạng '{adapter}'!"
-            }
+            interface = ipaddress.IPv4Interface(f'{ip}/{mask}')
+            gateway = str(ipaddress.IPv4Address(gateway.strip())) if gateway.strip() else ''
+            dns1 = str(ipaddress.IPv4Address(dns1.strip())) if dns1.strip() else ''
+            dns2 = str(ipaddress.IPv4Address(dns2.strip())) if dns2.strip() else ''
+            if dns2 and not dns1:
+                raise ValueError("Cần DNS chính trước DNS phụ.")
+            command = base + ['set', 'address', f'name={adapter}', 'static', str(interface.ip), str(interface.netmask)]
+            command += [gateway] if gateway else []
+            commands.append(command)
+            if dns1:
+                commands.append(base + ['set', 'dns', f'name={adapter}', 'static', dns1])
+            if dns2:
+                commands.append(base + ['add', 'dns', f'name={adapter}', dns2, 'index=2'])
+        for index, command in enumerate(commands):
+            result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=30)
+            if result.returncode != 0:
+                detail = result.stderr.strip() or result.stdout.strip()
+                prefix = 'IP đã thay đổi nhưng đặt DNS thất bại' if index else 'Không thể đặt IP'
+                return {"success": False, "message": f"{prefix}: {detail}"}
+        return {"success": True, "message": f"Đã áp dụng cấu hình {mode} cho {adapter}."}
     except Exception as e:
-        return {"success": False, "message": f"Ngoại lệ: {str(e)}"}
+        return {"success": False, "message": f"Lỗi cấu hình mạng: {e}"}
 
 
 def calculate_subnet(ip_str, cidr_val):
@@ -276,7 +267,7 @@ def calculate_subnet(ip_str, cidr_val):
                 "first_host": str(network.network_address + 1) if network.num_addresses > 2 else str(network.network_address),
                 "last_host": str(network.broadcast_address - 1) if network.num_addresses > 2 else str(network.broadcast_address),
                 "total_hosts": f"{network.num_addresses:,}",
-                "usable_hosts": f"{max(0, network.num_addresses - 2):,}",
+                "usable_hosts": f"{(network.num_addresses if network.prefixlen >= 31 else network.num_addresses - 2):,}",
                 "ip_class": ip_class,
                 "type": "Private" if network.is_private else "Public"
             }
@@ -293,6 +284,8 @@ def get_ipv6_status():
              '(Get-NetAdapterBinding -ComponentID ms_tcpip6 | Where-Object Enabled -eq $true).Count'],
             capture_output=True, text=True, timeout=8
         )
+        if res.returncode != 0 or not res.stdout.strip().isdigit():
+            raise RuntimeError(res.stderr.strip() or res.stdout.strip() or 'Không đọc được trạng thái IPv6.')
         count_str = res.stdout.strip()
         count = int(count_str) if count_str and count_str.isdigit() else 0
         enabled = count > 0
@@ -310,8 +303,12 @@ def set_ipv6_status(enable):
     """Enables or disables IPv6 across all adapters."""
     try:
         ps_cmd = 'Enable-NetAdapterBinding -Name "*" -ComponentID ms_tcpip6' if enable else 'Disable-NetAdapterBinding -Name "*" -ComponentID ms_tcpip6'
-        subprocess.run(['powershell', '-Command', ps_cmd], capture_output=True, text=True, timeout=10)
+        result = subprocess.run(['powershell', '-NoProfile', '-Command', '$ErrorActionPreference="Stop"; ' + ps_cmd], capture_output=True, text=True, timeout=10)
+        if result.returncode != 0:
+            raise RuntimeError(result.stderr or result.stdout)
         status = get_ipv6_status()
+        if not status.get("success") or status.get("enabled") != bool(enable):
+            return {"success": False, "message": "Chưa xác nhận được trạng thái IPv6 sau thay đổi.", "status": status}
         return {
             "success": True,
             "message": f"Đã {'BẬT' if enable else 'TẮT'} IPv6 thành công!",

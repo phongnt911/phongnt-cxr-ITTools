@@ -1,0 +1,133 @@
+{
+  "executable": "C:\\Users\\PHONGNT\\Documents\\GitHub\\phongnt-cxr-ITTools\\dist\\qa-tested\\IT_Tool_SAGS_CXR_2026.exe",
+  "frozen": true,
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "runtime_directory": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582",
+  "checks": {
+    "webview.winforms": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\webview\\platforms\\winforms.py"
+    },
+    "_tkinter": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\_tkinter.pyd"
+    },
+    "modules.computer_info": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\computer_info.py"
+    },
+    "modules.startup_manager": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\startup_manager.py"
+    },
+    "modules.uninstall_manager": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\uninstall_manager.py"
+    },
+    "modules.bitlocker": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\bitlocker.py"
+    },
+    "modules.ip_manager": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\ip_manager.py"
+    },
+    "modules.ip_scanner": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\ip_scanner.py"
+    },
+    "modules.browser_backup": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\browser_backup.py"
+    },
+    "modules.boot_manager": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\boot_manager.py"
+    },
+    "modules.printer_fix": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\printer_fix.py"
+    },
+    "modules.auto_shutdown": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\auto_shutdown.py"
+    },
+    "modules.backup_driver": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\backup_driver.py"
+    },
+    "modules.currency": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\currency.py"
+    },
+    "modules.datetime_tool": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\datetime_tool.py"
+    },
+    "modules.desktop_icon": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\desktop_icon.py"
+    },
+    "modules.firewall": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\firewall.py"
+    },
+    "modules.folder_size": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\folder_size.py"
+    },
+    "modules.hosts_editor": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\hosts_editor.py"
+    },
+    "modules.office_opt": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\office_opt.py"
+    },
+    "modules.other_tools": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\other_tools.py"
+    },
+    "modules.sendto_editor": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\sendto_editor.py"
+    },
+    "modules.server_tools": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\server_tools.py"
+    },
+    "modules.services_manager": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\services_manager.py"
+    },
+    "modules.wincheck": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\wincheck.py"
+    },
+    "modules.win_update": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\win_update.py"
+    },
+    "modules.classic_menu": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\classic_menu.py"
+    },
+    "modules.zoom_screen": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\zoom_screen.py"
+    },
+    "modules.zoom_screen_gui": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\zoom_screen_gui.py"
+    },
+    "modules.fluent_cleaner": {
+      "ok": true,
+      "detail": "C:\\Users\\PHONGNT\\AppData\\Local\\ITToolSAGSCXR\\Runtime\\_MEI0000c6582\\modules\\fluent_cleaner.py"
+    },
+    "tkinter.window": {
+      "ok": true,
+      "detail": "8.6.12"
+    }
+  },
+  "ok": true
+}

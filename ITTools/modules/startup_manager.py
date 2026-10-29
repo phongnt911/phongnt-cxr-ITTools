@@ -1,3 +1,4 @@
+from pathlib import Path
 """
 Startup Manager Module
 Manages startup entries from HKCU, HKLM, RunOnce, User folder, Common folder
@@ -515,7 +516,7 @@ def get_all_startup_entries():
             key = winreg.OpenKey(hive, subkey, 0, winreg.KEY_READ)
             disabled_names = set()
             try:
-                appr_key_path = subkey.replace(r'\CurrentVersion\Run', r'\CurrentVersion\Explorer\StartupApproved\Run')
+                _, appr_key_path = _startup_approval(location_label)
                 appr_key = winreg.OpenKey(hive, appr_key_path, 0, winreg.KEY_READ)
                 i = 0
                 while True:
@@ -570,14 +571,22 @@ def get_all_startup_entries():
                 if item.lower() in ('desktop.ini', 'thumbs.db'):
                     continue
                 full_path = os.path.join(folder_path, item)
+                is_enabled = True
+                try:
+                    hive, approved_path = _startup_approval(label)
+                    with winreg.OpenKey(hive, approved_path) as key:
+                        approved, _ = winreg.QueryValueEx(key, item)
+                        is_enabled = not isinstance(approved, bytes) or not approved or approved[0] in (0, 2)
+                except OSError:
+                    pass
                 entries.append({
                     "name": os.path.splitext(item)[0],
                     "path": full_path,
                     "location": label,
                     "reg_hive": "",
                     "reg_path": folder_path,
-                    "is_enabled": True,
-                    "status": "Enable",
+                    "is_enabled": is_enabled,
+                    "status": "Enable" if is_enabled else "Disabled",
                     "type": "folder",
                     "icon": extract_file_icon_base64(full_path)
                 })
@@ -603,15 +612,34 @@ def get_reg_info(location):
         return winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Run'
 
 
+def _startup_folder(location):
+    root = '%PROGRAMDATA%' if location == 'Common Startup' else '%APPDATA%'
+    return os.path.expandvars(root + r'\Microsoft\Windows\Start Menu\Programs\Startup')
+
+
+def _startup_approval(location):
+    import winreg
+    allowed = {'HKCU\\Run', 'HKLM\\Run', 'HKLM\\WOW64Run', 'User Startup', 'Common Startup'}
+    if location not in allowed:
+        raise ValueError("Windows StartupApproved không hỗ trợ vị trí này.")
+    hive = winreg.HKEY_LOCAL_MACHINE if location.startswith('HKLM') or location == 'Common Startup' else winreg.HKEY_CURRENT_USER
+    leaf = 'StartupFolder' if location.endswith('Startup') else ('Run32' if 'WOW64' in location else 'Run')
+    return hive, r'Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved' + '\\' + leaf
+
+
 def toggle_startup_status(name, location, enable):
     """Enables or disables a registry startup entry via StartupApproved key."""
     import winreg
-    if "HKLM" in (location or ""):
-        hive = winreg.HKEY_LOCAL_MACHINE
-        appr_path = r'Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run'
-    else:
-        hive = winreg.HKEY_CURRENT_USER
-        appr_path = r'Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run'
+    try:
+        hive, appr_path = _startup_approval(location)
+        if location in ('User Startup', 'Common Startup'):
+            folder = _startup_folder(location)
+            matches = [f for f in os.listdir(folder) if os.path.splitext(f)[0] == name]
+            if len(matches) != 1:
+                raise ValueError("Không xác định được file Startup duy nhất.")
+            name = matches[0]
+    except Exception as e:
+        return {"success": False, "message": str(e)}
 
     try:
         key = winreg.CreateKey(hive, appr_path)
@@ -636,34 +664,32 @@ def save_startup_entry(name, path, location="HKCU\\Run", old_name=None, old_loca
         return {"success": False, "message": "Vui lòng nhập đầy đủ Tên (Value Name) và Đường dẫn (Value Data)!"}
 
     try:
-        # Delete old entry if renamed or location changed
-        target_old_loc = old_location if old_location else location
-        target_old_name = old_name if old_name else name
-
-        if old_name and (old_name != name or old_location != location):
-            delete_startup_entry(target_old_name, target_old_loc)
-
-        if "Startup" in location:
-            folder = os.path.expandvars(r'%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup')
-            if "Common" in location:
-                folder = os.path.expandvars(r'%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup')
+        if location not in ('HKCU\\Run', 'HKLM\\Run', 'HKLM\\WOW64Run', 'HKCU\\RunOnce', 'HKLM\\RunOnce', 'User Startup', 'Common Startup'):
+            raise ValueError("Vị trí Startup không hợp lệ.")
+        old_path = None
+        if location in ('User Startup', 'Common Startup'):
+            if any(c in name for c in '<>:"/\\|?*') or name in ('.', '..'):
+                raise ValueError("Tên shortcut không hợp lệ.")
+            folder = _startup_folder(location)
+            os.makedirs(folder, exist_ok=True)
             lnk_path = os.path.join(folder, f"{name}.lnk")
-            ps = f'$s=(New-Object -COM WScript.Shell).CreateShortcut("{lnk_path}"); $s.TargetPath="{path}"; $s.Save()'
-            subprocess.run(["powershell", "-NoProfile", "-Command", ps], check=True)
-            return {"success": True, "message": f"Đã lưu khoản khởi động: {name}"}
+            quoted_link = lnk_path.replace("'", "''")
+            quoted_target = path.replace("'", "''")
+            ps = f"$ErrorActionPreference='Stop'; $s=(New-Object -COM WScript.Shell).CreateShortcut('{quoted_link}'); $s.TargetPath='{quoted_target}'; $s.Save()"
+            subprocess.run(["powershell", "-NoProfile", "-Command", ps], check=True, capture_output=True)
         else:
             hive, reg_path = get_reg_info(location)
-            try:
-                key = winreg.OpenKey(hive, reg_path, 0, winreg.KEY_SET_VALUE)
+            with winreg.CreateKey(hive, reg_path) as key:
                 winreg.SetValueEx(key, name, 0, winreg.REG_SZ, path)
-                winreg.CloseKey(key)
-                return {"success": True, "message": f"Đã lưu khoản khởi động: {name}"}
-            except PermissionError:
-                reg_hive_str = "HKLM" if hive == winreg.HKEY_LOCAL_MACHINE else "HKCU"
-                cmd = f'Start-Process reg -ArgumentList \'add "{reg_hive_str}\\{reg_path}" /v "{name}" /t REG_SZ /d "{path}" /f\' -Verb RunAs'
-                subprocess.run(["powershell", "-NoProfile", "-Command", cmd])
-                return {"success": True, "message": f"Đã lưu khoản khởi động: {name}"}
-
+        # Keep the old entry until the replacement has been saved successfully.
+        if old_name and (old_name != name or (old_location and old_location != location)):
+            old_location = old_location or location
+            if old_location in ('User Startup', 'Common Startup'):
+                old_path = os.path.join(_startup_folder(old_location), old_name + '.lnk')
+            removed = delete_startup_entry(old_name, old_location, old_path)
+            if not removed.get('success'):
+                return {"success": False, "message": "Đã lưu mục mới nhưng chưa xóa được mục cũ: " + removed.get('message', '')}
+        return {"success": True, "message": f"Đã lưu mục khởi động: {name}"}
     except Exception as e:
         return {"success": False, "message": str(e)}
 
@@ -675,21 +701,18 @@ def delete_startup_entry(name, location, path=None):
     import subprocess
 
     try:
-        if "Startup" in location and path and os.path.exists(path):
+        if location in ('User Startup', 'Common Startup'):
+            if not path or Path(path).resolve().parent != Path(_startup_folder(location)).resolve():
+                raise ValueError("File không nằm trong thư mục Startup đã chọn.")
             os.remove(path)
-            return {"success": True, "message": f"Đã xóa file khởi động: {name}"}
+        else:
+            if location not in ('HKCU\\Run', 'HKLM\\Run', 'HKLM\\WOW64Run', 'HKCU\\RunOnce', 'HKLM\\RunOnce'):
+                raise ValueError("Vị trí Startup không hợp lệ.")
+            hive, reg_path = get_reg_info(location)
+            with winreg.OpenKey(hive, reg_path, 0, winreg.KEY_SET_VALUE) as key:
+                winreg.DeleteValue(key, name)
+        return {"success": True, "message": f"Đã xóa mục khởi động: {name}"}
 
-        hive, reg_path = get_reg_info(location)
-        try:
-            key = winreg.OpenKey(hive, reg_path, 0, winreg.KEY_SET_VALUE)
-            winreg.DeleteValue(key, name)
-            winreg.CloseKey(key)
-            return {"success": True, "message": f"Đã xóa khoản khởi động: {name}"}
-        except PermissionError:
-            reg_hive_str = "HKLM" if hive == winreg.HKEY_LOCAL_MACHINE else "HKCU"
-            cmd = f'Start-Process reg -ArgumentList \'delete "{reg_hive_str}\\{reg_path}" /v "{name}" /f\' -Verb RunAs'
-            subprocess.run(["powershell", "-NoProfile", "-Command", cmd])
-            return {"success": True, "message": f"Đã xóa khoản khởi động: {name}"}
     except Exception as e:
         return {"success": False, "message": str(e)}
 

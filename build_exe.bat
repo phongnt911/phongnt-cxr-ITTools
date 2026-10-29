@@ -15,6 +15,10 @@ cd /d "%~dp0"
 
 :: -- 1. Auto-detect Python interpreter --
 set PYTHON_EXE=
+if exist "%~dp0.venv\Scripts\python.exe" (
+    set "PYTHON_EXE=%~dp0.venv\Scripts\python.exe"
+    goto :check_dependencies
+)
 
 :: 1. Try 'py' launcher
 py --version >nul 2>&1
@@ -75,6 +79,11 @@ goto :eof
 
 :: -- 2. Kiem tra va Tu dong cai dat toan bo thu vien phu thuoc --
 :check_dependencies
+"%PYTHON_EXE%" -c "import _tkinter, tkinter; tkinter.Tcl().eval('info patchlevel')" >nul 2>&1
+if errorlevel 1 (
+    echo [LOI] Python thieu hoac hong Tcl/Tk. Hay cai Python voi thanh phan Tcl/Tk truoc khi build.
+    exit /b 1
+)
 echo [OK] Dang dung Python: %PYTHON_EXE%
 "%PYTHON_EXE%" --version
 echo.
@@ -130,16 +139,11 @@ echo.
 
 :: -- 3. Don dep thu muc build cu --
 :clean_and_build
-echo [1/3] Don dep thu muc build cu...
-if exist "dist\IT_Tool_LTT.exe" del /f /q "dist\IT_Tool_LTT.exe"
-if exist "build" rmdir /s /q "build" 2>nul
-if exist "ITTools\build" rmdir /s /q "ITTools\build" 2>nul
-if exist "ITTools\dist" rmdir /s /q "ITTools\dist" 2>nul
-echo [OK] Da don dep xong.
+echo [1/3] Kiem tra Python va Tcl/Tk thanh cong.
 echo.
 
 :: -- 4. Dong goi EXE voi PyInstaller --
-echo [2/3] Dang dong goi IT_Tool_LTT.exe (PyInstaller)...
+echo [2/3] Dang dong goi IT_Tool_SAGS_CXR_2026.exe (PyInstaller)...
 echo      Qua trinh nay co the mat 1 - 2 phut, vui long cho...
 echo.
 
@@ -159,10 +163,10 @@ echo [3/3] HOAN TAT! DONG GOI THANH CONG!
 echo ============================================================
 echo.
 
-if not exist "dist\IT_Tool_LTT.exe" goto :exe_not_found
+if not exist "dist\IT_Tool_SAGS_CXR_2026.exe" goto :exe_not_found
 
 echo File EXE da tao tai:
-for %%F in ("dist\IT_Tool_LTT.exe") do (
+for %%F in ("dist\IT_Tool_SAGS_CXR_2026.exe") do (
     set /a "SIZE_MB=%%~zF / 1048576"
     echo   %%~fF
     echo   Kich thuoc: %%~zF bytes (~!SIZE_MB! MB)
@@ -177,18 +181,18 @@ for %%F in ("dist\IT_Tool_LTT.exe") do (
 )
 echo.
 echo HUONG DAN SU DUNG TREN MAY TINH KHAC:
-echo   1. Chi can copy file dist\IT_Tool_LTT.exe sang may khac la chay duoc ngay.
+echo   1. Chi can copy file dist\IT_Tool_SAGS_CXR_2026.exe sang may khac la chay duoc ngay.
 echo   2. Khong can cai dat Python, pip, hay bat ky thu vien nao.
 echo   3. File da duoc tich hop san quyen Administrator (UAC).
 echo   4. May tinh chi can Windows 10/11 (da co san WebView2 Runtime).
 echo ============================================================
 echo.
 echo Dang mo thu muc chua file EXE...
-explorer.exe /select,"%~dp0dist\IT_Tool_LTT.exe"
+explorer.exe /select,"%~dp0dist\IT_Tool_SAGS_CXR_2026.exe"
 goto :done
 
 :exe_not_found
-echo [CANH BAO] Khong tim thay file dist\IT_Tool_LTT.exe!
+echo [CANH BAO] Khong tim thay file dist\IT_Tool_SAGS_CXR_2026.exe!
 
 :done
 echo.

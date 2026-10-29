@@ -490,6 +490,8 @@ def list_iscsi_targets():
     """Lists current iSCSI Targets via iscsicli."""
     try:
         res = subprocess.run(['iscsicli', 'ListTargets'], capture_output=True, text=True, timeout=15, encoding='utf-8', errors='ignore')
+        if res.returncode != 0:
+            return {"success": False, "message": res.stderr.strip() or res.stdout.strip() or "Không đọc được iSCSI Targets; kiểm tra quyền Administrator và dịch vụ iSCSI."}
         return {"success": True, "output": res.stdout.strip() or "Không tìm thấy iSCSI Targets nào."}
     except Exception as e:
         return {"success": False, "message": str(e)}

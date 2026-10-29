@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IT Tool LTT 2026 - Nguyễn Thanh Phong | Email: phongnt-cxr@sags.vn</title>
+  <title>IT Tool / SAGS-CXR 2026 - Nguyễn Thanh Phong | Email: phongnt-cxr@sags.vn</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="stylesheet" href="style.css">
@@ -22,11 +22,11 @@
     <aside class="sidebar">
       <div class="brand-header">
         <div class="brand-logo">
-          <img src="logo.png" alt="IT Tool LTT" class="brand-logo-img">
+          <img src="logo.png" alt="IT Tool / SAGS-CXR" class="brand-logo-img">
         </div>
         <div class="brand-info">
-          <h1 class="brand-name">IT Tool LTT</h1>
-          <span class="brand-sub">LÊ THẾ TUẤN • 2026</span>
+          <h1 class="brand-name">IT Tool</h1>
+          <span class="brand-sub">SAGS-CXR 2026</span>
         </div>
       </div>
 
@@ -58,6 +58,7 @@
             class="nav-label">Server Tools</span></button>
 
         <div class="sidebar-sec-label">🛠️ TIỆN ÍCH WINDOWS</div>
+        <button class="nav-item" data-tab="tab-fluent-cleaner"><span class="nav-icon">🧹</span><span class="nav-label">Dọn dẹp • FluentCleaner</span></button>
         <button class="nav-item" data-tab="tab-zoom-screen"><span class="nav-icon">🔍</span><span class="nav-label">Zoom
             Screen</span></button>
         <button class="nav-item" data-tab="tab-auto-shutdown"><span class="nav-icon">⏻</span><span
@@ -115,18 +116,12 @@
             onclick="document.getElementById('header-autostart-checkbox').click()">TẮT</span>
         </div>
         <div style="display: flex; gap: 6px; margin-top: 4px;">
-          <button class="btn btn-xs btn-sky-outline" onclick="app.openWebsite()"
-            style="flex: 1; padding: 5px 8px; font-size: 10.5px; font-weight: 600;"
-            title="Website: https://github.com/lethetuan/ITTools">
-            🌐 Repo nguồn
-          </button>
           <button class="btn btn-xs btn-sky-outline" onclick="app.openEmail()"
             style="flex: 1; padding: 5px 8px; font-size: 10.5px; font-weight: 600;"
             title="Email: phongnt-cxr@sags.vn">
             ✉️ Email
           </button>
         </div>
-        <small>Phát triển từ <a href="https://github.com/lethetuan/ITTools" target="_blank" rel="noopener noreferrer">lethetuan/ITTools</a></small>
       </div>
     </aside>
 
@@ -145,7 +140,7 @@
 
         <div class="header-status-group">
           <!-- CTA Button styled like '✨ Tìm Kiếm Cơ Hội AI' in reference design -->
-          <button class="btn btn-dark-pill" onclick="app.openWebsite()" title="Trang chủ & Hướng dẫn sử dụng" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+          <button class="btn btn-dark-pill" onclick="app.openEmail()" title="Liên hệ hỗ trợ qua email" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
             <span>✨</span> <span>Hỗ Trợ Online</span>
           </button>
 
@@ -160,7 +155,7 @@
 
           <!-- 🚀 Khởi Động Cùng Windows (Hiển thị trên tất cả danh mục) -->
           <div class="status-pill autostart-pill" id="header-autostart-pill"
-            title="Cài đặt tự động khởi động IT Tool LTT cùng Windows khi bật máy">
+            title="Cài đặt tự động khởi động IT Tool / SAGS-CXR cùng Windows khi bật máy">
             <label class="autostart-toggle-label" for="header-autostart-checkbox">
               <span class="autostart-icon">🚀</span>
               <span class="autostart-text">Khởi Động Cùng Win:</span>
@@ -453,7 +448,7 @@
                     style="padding: 13px 16px; font-size: 14px; font-weight: 800; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); margin-bottom: 10px; border-radius: 9px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35); display: flex; align-items: center; justify-content: center; gap: 8px;"
                     onclick="app.openOneClickFixPrinterModal()">
                     <span style="font-size: 16px;">⚡</span>
-                    <span>ONE CLICK FIX TẤT CẢ LỖI MÁY IN MẠNG LAN</span>
+                    <span>KIỂM TRA & SỬA FILE WINDOWS BẰNG SFC</span>
                   </button>
 
                   <button class="btn btn-slate-light w-100"
@@ -543,7 +538,7 @@
             </div>
           </div>
 
-          <!-- ── MODAL: ONE CLICK FIX TẤT CẢ LỖI MÁY IN MẠNG LAN ──────────────── -->
+          <!-- ── MODAL: KIỂM TRA & SỬA FILE WINDOWS BẰNG SFC ──────────────── -->
           <div class="custom-modal-overlay" id="printer-fix-modal"
             style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(5px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
             <div class="ui-card shadow-2xl printer-fix-modal-box">
@@ -556,10 +551,10 @@
                 <div style="flex-grow: 1;">
                   <h3
                     style="margin: 0; font-size: 16.5px; font-weight: 800; color: #0284c7; letter-spacing: 0.3px; line-height: 1.3;">
-                    ONE CLICK FIX TẤT CẢ LỖI MÁY IN MẠNG LAN
+                    KIỂM TRA & SỬA FILE WINDOWS BẰNG SFC
                   </h3>
                   <p style="margin: 3px 0 0 0; font-size: 12.5px; color: #64748b; font-weight: 500;">
-                    Cấp quyền Takeown, sao lưu .old, nạp RpcAuthnLevelPrivacyEnabled=0 &amp; nạp 3 file sạch vào
+                    Dùng SFC chính thức, giữ nguyên bảo mật máy in. Không chép file đóng gói vào
                     System32
                   </p>
                 </div>
@@ -575,26 +570,25 @@
                 <!-- Step 1 -->
                 <div id="pf-step-1" class="pf-step-card pf-step-pending">
                   <div class="pf-step-icon"><span class="pf-icon-mark">✓</span></div>
-                  <div class="pf-step-text">Đã cấp quyền, sao lưu .old &amp; nạp RpcAuthnLevelPrivacyEnabled = 0 thành
-                    công</div>
+                  <div class="pf-step-text">Bắt đầu kiểm tra tính toàn vẹn file Windows</div>
                 </div>
 
                 <!-- Step 2 -->
                 <div id="pf-step-2" class="pf-step-card pf-step-pending">
                   <div class="pf-step-icon"><span class="pf-icon-mark">✓</span></div>
-                  <div class="pf-step-text">Đã nạp thành công 3/3 tệp vào C:\Windows\System32</div>
+                  <div class="pf-step-text">SFC kiểm tra và sửa file từ kho thành phần Windows</div>
                 </div>
 
                 <!-- Step 3 -->
                 <div id="pf-step-3" class="pf-step-card pf-step-pending">
                   <div class="pf-step-icon"><span class="pf-icon-mark">✓</span></div>
-                  <div class="pf-step-text">Đã cấu hình tự động &amp; khởi động Print Spooler thành công</div>
+                  <div class="pf-step-text">Giữ nguyên các thiết lập bảo mật máy in</div>
                 </div>
 
                 <!-- Step 4 -->
                 <div id="pf-step-4" class="pf-step-card pf-step-pending">
                   <div class="pf-step-icon"><span class="pf-icon-mark">✓</span></div>
-                  <div class="pf-step-text">Hoàn tất sửa lỗi — Bạn có thể thử kết nối lại máy in mạng LAN</div>
+                  <div class="pf-step-text">Kiểm tra kết quả SFC và thử in lại</div>
                 </div>
 
               </div>
@@ -1926,7 +1920,7 @@
                 <p>Chạy lệnh PowerShell bên dưới để xuất báo cáo chi tiết về sức khỏe và độ chai của pin:</p>
 
                 <div class="tc-cmd-box" style="margin: 0.85rem 0;">
-                  <code>irm j2c.cc/batterycheck | iex</code>
+                  <code>powercfg /batteryreport</code>
                   <button class="tc-btn tc-btn-outline" id="tc-copy-cmd-btn"
                     style="font-size: 0.65rem; white-space: nowrap;">Sao chép</button>
                 </div>
@@ -1947,19 +1941,17 @@
                   <div class="tc-trouble-content" id="tc-trouble-content">
                     <div style="display: flex; flex-direction: column; gap: 1.25rem; margin-top: 1rem;">
                       <div>
-                        <p style="font-weight: 700; font-size: 0.8rem; margin-bottom: 0.35rem;">1. Nếu lệnh bị chặn do
-                          nhà mạng hoặc DNS:</p>
+                        <p style="font-weight: 700; font-size: 0.8rem; margin-bottom: 0.35rem;">1. Xuất báo cáo pin bằng công cụ Windows:</p>
                         <div class="tc-cmd-box tc-cmd-box-sm">
-                          <code>iex (curl.exe -s --doh-url https://1.1.1.1/dns-query j2c.cc/batterycheck | Out-String)</code>
+                          <code>powercfg /batteryreport</code>
                           <button class="tc-btn tc-btn-outline" id="tc-copy-trouble1-btn"
                             style="font-size: 0.65rem; white-space: nowrap;">Sao chép</button>
                         </div>
                       </div>
                       <div>
-                        <p style="font-weight: 700; font-size: 0.8rem; margin-bottom: 0.35rem;">2. Nếu gặp lỗi TLS/SSL
-                          do Windows cũ:</p>
+                        <p style="font-weight: 700; font-size: 0.8rem; margin-bottom: 0.35rem;">2. Không cần tải hoặc chạy script từ Internet:</p>
                         <div class="tc-cmd-box tc-cmd-box-sm">
-                          <code>[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12</code>
+                          <code>powercfg /batteryreport</code>
                           <button class="tc-btn tc-btn-outline" id="tc-copy-trouble2-btn"
                             style="font-size: 0.65rem; white-space: nowrap;">Sao chép</button>
                         </div>
@@ -3102,12 +3094,12 @@
             <p class="text-muted mb-3">Tự động quét các ứng dụng khởi động từ Registry HKLM, HKCU, RunOnce, User Startup
               & Common Startup. Cho phép Bật/Tắt, Chỉnh sửa, Xóa và Chạy trực tiếp.</p>
 
-            <!-- IT Tool LTT Quick Startup Card -->
+            <!-- IT Tool / SAGS-CXR Quick Startup Card -->
             <div class="d-flex align-items-center justify-content-between p-3 mb-3 startup-quick-banner">
               <div class="d-flex align-items-center gap-3">
                 <img src="logo.png" alt="Logo" style="width: 38px; height: 38px; object-fit: contain;">
                 <div>
-                  <div class="startup-quick-title">🚀 Tự Động Khởi Động IT Tool LTT Cùng Windows</div>
+                  <div class="startup-quick-title">🚀 Tự Động Khởi Động IT Tool / SAGS-CXR Cùng Windows</div>
                   <div class="text-muted" style="font-size: 11px;">Khi bật, phần mềm sẽ tự khởi động ngay khi Windows
                     bật máy. Nếu đang mở thu nhỏ/chạy ngầm, mở lại sẽ gọi đúng tiến trình đó.</div>
                 </div>
@@ -6821,6 +6813,20 @@
 
         </section>
 
+        <section class="page-section" id="tab-fluent-cleaner">
+          <div class="ui-card mb-3">
+            <div class="card-header"><div class="card-title"><span class="card-icon">🧹</span><span>FluentCleaner • Dọn dẹp Windows</span></div></div>
+            <p>Dọn cache, file tạm và dữ liệu ứng dụng bằng FluentCleaner của builtbybel. Công cụ mở trong cửa sổ riêng để bạn xem kết quả quét và chọn chính xác dữ liệu cần xóa.</p>
+            <div class="mt-3 mb-3">
+              <button id="fluent-cleaner-open" class="btn btn-primary-gradient" onclick="app.openFluentCleaner()">🧹 Mở FluentCleaner</button>
+              <button class="btn btn-slate-light" onclick="app.openExternalUrl('https://aka.ms/windowsappsdk/2.0/2.0.1/windowsappruntimeinstall-x64.exe')">Windows App Runtime 2.0.1 x64</button>
+            </div>
+            <p id="fluent-cleaner-status" role="status" aria-live="polite">Sẵn sàng • FluentCleaner Modern 26.09.01 • Windows x64</p>
+            <p class="text-muted">Lần đầu sử dụng: nếu FluentCleaner không mở được, cài Windows App Runtime bằng nút bên trên rồi thử lại. Luôn xem danh sách file trước khi xác nhận dọn dẹp; một số mục có thể xóa lịch sử hoặc dữ liệu đăng nhập.</p>
+            <p class="text-muted">Tác giả: builtbybel • FluentCleaner: MIT • Quy tắc Winapp2: CC BY-SA 4.0. Bản tích hợp được đóng gói từ release chính thức và kiểm tra tính toàn vẹn trước khi mở.</p>
+          </div>
+        </section>
+
         <!-- 📁 Folder Size Analyzer -->
         <section class="page-section" id="tab-folder-size">
           <div class="ui-card mb-3">
@@ -7690,7 +7696,7 @@
 
                     <label
                       style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">
-                      <input type="checkbox" id="bb-opt-passwords" checked
+                      <input type="checkbox" title="Mã hóa bằng tài khoản Windows hiện tại; không dùng để chuyển sang máy/tài khoản khác" id="bb-opt-passwords"
                         style="accent-color: #2563eb; width: 16px; height: 16px;">
                       <span>🔑 Mật Khẩu Đã Lưu (Saved Passwords & AutoFill)</span>
                     </label>
@@ -7770,7 +7776,7 @@
 
                 <!-- Action Controls -->
                 <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px;">
-                  <button class="btn btn-primary-solid py-3" id="bb-btn-backup" onclick="app.startBrowserBackup()"
+                  <button class="btn btn-primary-solid py-3" title="Dữ liệu được mã hóa; chỉ khôi phục bằng cùng tài khoản Windows đã sao lưu" id="bb-btn-backup" onclick="app.startBrowserBackup()"
                     style="font-size: 14px; font-weight: 700;">
                     <span>💾</span> Bắt Đầu Sao Lưu (Backup Now)
                   </button>
@@ -8024,7 +8030,7 @@
       </div>
     </div>
     <div class="log-drawer-body" id="log-body">
-      <div class="log-line info">[SYS] Đã khởi tạo hệ thống IT Tool LTT 2026...</div>
+      <div class="log-line info">[SYS] Đã khởi tạo hệ thống IT Tool / SAGS-CXR 2026...</div>
     </div>
   </div>
 
@@ -8035,6 +8041,7 @@
   <script src="js/win_security.js"></script>
   <script src="js/system_drives.js"></script>
   <script src="js/network_tools.js"></script>
+  <script src="js/fluent_cleaner.js"></script>
   <script src="js/services_manager.js"></script>
   <script src="js/backup_driver.js"></script>
   <script src="js/browser_backup.js"></script>

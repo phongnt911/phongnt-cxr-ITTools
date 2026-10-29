@@ -555,4 +555,50 @@ py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m PyInstaller IT-Tools.spec --noconfirm --clean
 ```
 
-Kết quả build dự kiến: `dist/IT_Tool_LTT.exe`. Môi trường Linux chỉ phục vụ chỉnh sửa và kiểm tra mã nguồn; PyInstaller không biên dịch chéo sang Windows.
+Kết quả build dự kiến: `dist/IT_Tool_SAGS_CXR_2026.exe`. Môi trường Linux chỉ phục vụ chỉnh sửa và kiểm tra mã nguồn; PyInstaller không biên dịch chéo sang Windows.
+
+### FluentCleaner trong Tiện ích Windows
+
+Chọn **Tiện ích Windows → Dọn dẹp • FluentCleaner → Mở FluentCleaner**.
+Bản Modern 26.09.01 x64 được đóng gói từ release chính thức; công cụ mở trong cửa sổ riêng để người dùng chọn quét và dọn dẹp. Không truyền tham số dọn tự động.
+Nếu thiếu Windows App Runtime 2.0.1 x64, dùng nút tải từ Microsoft trong mục này rồi cài và mở lại FluentCleaner.
+
+Nguồn gốc, hash và thông báo giấy phép: `ITTools/vendor/fluentcleaner/INTEGRATION.md`.
+Kiểm thử: `.venv\Scripts\python.exe -m unittest discover -s tests -v`.
+Build bản tích hợp khi phiên cũ vẫn đang chạy:
+
+```powershell
+.\.venv\Scripts\python.exe -m PyInstaller IT-Tools.spec --noconfirm --clean --distpath dist/integrated
+```
+
+EXE mới: `dist/integrated/IT_Tool_SAGS_CXR_2026.exe`. Đóng phiên IT Tool cũ trước khi mở bản này để cơ chế single-instance không kích hoạt lại phiên cũ.
+
+Từ bản 1.0.1, runtime được giải nén dưới `%LOCALAPPDATA%\ITToolSAGSCXR\Runtime`
+để tránh bị công cụ dọn Temp xóa khi đang chạy. Có thể kiểm tra chính EXE bằng
+`IT_Tool_SAGS_CXR_2026.exe --self-test report.json`; báo cáo xác minh Tcl/Tk và
+import các module mà không thực hiện thao tác quản trị hệ thống.
+
+### Kiểm thử Windows 1.0.2
+
+Bản đã kiểm thử: `dist/qa-tested/IT_Tool_SAGS_CXR_2026.exe`; shortcut trong thư mục dự án trỏ tới bản này.
+Xem phạm vi, lỗi đã sửa và giới hạn môi trường tại `security-review/QA-2026-10-24.md`.
+Chạy kiểm tra chỉ đọc: `.venv\Scripts\python.exe -X utf8 tests/qa_windows.py`.
+Dữ liệu thô của máy được giữ trong thư mục bỏ qua Git `ITTools/scratch/qa-results`, báo cáo chỉ chứa kết quả kiểm tra.
+
+### Bản sử dụng 1.0.3 — 27/10/2026
+
+Gói phân phối: `dist/ITTool-SAGS-CXR-2026-v1.0.3-Windows-x64.zip`.
+EXE: `dist/release-1.0.3/IT_Tool_SAGS_CXR_2026.exe`; shortcut dự án trỏ tới bản này.
+48 kiểm thử Python và 45 kiểm tra trên EXE đạt. Xem phạm vi, giới hạn và SHA-256 tại `security-review/RELEASE-1.0.3-2026-10-27.md`.
+Giải nén ZIP và mở EXE; không cần Python. Chọn Thoát ở khay hệ thống để đóng phiên cũ trước khi đổi bản.
+
+### 🤖 Bộ Ba Hỗ Trợ AI Agent: Ponytail + Superpowers + LeanCTX
+
+Dự án đã tích hợp sẵn bộ 3 công cụ & tiêu chuẩn kỹ thuật hàng đầu cho AI Coding Agents (Antigravity, Gemini CLI, Claude Code, Cursor, Codex, OpenCode):
+
+1. **🐎 Ponytail (DietrichGebert/ponytail):** Tư duy "lazy senior developer" — tối giản hóa mã nguồn, triệt tiêu over-engineering (YAGNI), ưu tiên tái sử dụng mã nội bộ và thư viện chuẩn Windows/Python trước khi viết thêm code.
+2. **⚡ Superpowers (obra/superpowers):** Quy trình phát triển phần mềm chuẩn mực — brainstorming & lập kế hoạch trước khi code, TDD (Red-Green-Refactor), gỡ lỗi có bằng chứng (Systematic Debugging) và rà soát kỹ lưỡng trước khi hoàn tất.
+3. **🎯 LeanCTX (yvgude/lean-ctx):** Tối ưu hóa ngữ cảnh (Context Gateway) — đọc tệp chọn lọc, giảm thiểu số vòng lặp giao tiếp (fewer round trips), không busy polling và tiết kiệm token tối đa.
+
+- **Workspace Skills:** Toàn bộ 23 bộ kỹ năng được tích hợp tại .agents/skills/.
+- **Chỉ dẫn Agent:** Được cấu hình tập trung tại AGENTS.md và GEMINI.md.

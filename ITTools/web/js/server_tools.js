@@ -5,24 +5,6 @@
 Object.assign(AppController.prototype, {
 
   /**
-   * Generic module handler fallback
-   */
-  async runModule(moduleName, action) {
-    this.addLog("info", `Thực thi module: ${moduleName} - ${action}`);
-    if (moduleName === 'server_tools') {
-      if (action === 'open') {
-        this.openServerToolsGui();
-      } else {
-        this.loadServerTools();
-      }
-    } else {
-      if (window.pywebview && window.pywebview.api && window.pywebview.api.run_module) {
-        window.pywebview.api.run_module(moduleName, action);
-      }
-    }
-  },
-
-  /**
    * Loads Server Tools dashboard status (NIC teams, iSCSI, DHCP, AD)
    */
   async loadServerTools() {

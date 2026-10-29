@@ -12,6 +12,13 @@ if sys.platform != "win32":
 import os
 from PyInstaller.utils.hooks import collect_all, collect_data_files, collect_submodules
 
+# Fail the build instead of producing an EXE with unusable lazy GUI imports.
+import _tkinter
+import tkinter
+_tcl_probe = tkinter.Tcl()
+_tcl_probe.eval('info patchlevel')
+del _tcl_probe
+
 block_cipher = None
 
 base_dir = os.path.abspath(os.path.join(SPECPATH, "ITTools"))
@@ -27,7 +34,9 @@ datas_openpyxl, binaries_openpyxl, hiddenimports_openpyxl = collect_all("openpyx
 project_datas = [
     (os.path.join(SPECPATH, "LICENSE"), "."),
     (os.path.join(base_dir, "web"),     "web"),
-    (os.path.join(base_dir, "assets"),  "assets"),
+    (os.path.join(base_dir, "vendor", "fluentcleaner"), "vendor/fluentcleaner"),
+    (os.path.join(base_dir, "assets", "tray_icon.ico"), "assets"),
+    (os.path.join(base_dir, "assets", "tray_icon.png"), "assets"),
     (os.path.join(base_dir, "modules"), "modules"),
     (os.path.join(base_dir, "config"),  "config"),
     (os.path.join(base_dir, "ui"),      "ui"),
@@ -160,13 +169,15 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name="IT_Tool_LTT",
+    name="IT_Tool_SAGS_CXR_2026",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,
     upx_exclude=[],
-    runtime_tmpdir=None,
+    # Keep live dependencies outside Temp, which cleanup utilities can empty.
+    # Windows' bootloader expands LOCALAPPDATA on the destination machine.
+    runtime_tmpdir=r'%LOCALAPPDATA%\ITToolSAGSCXR\Runtime',
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,

@@ -36,3 +36,4 @@ ITTools/wfpstate.xml
 .vscode/*
 !.vscode/extensions.json
 .idea/
+*.lnk

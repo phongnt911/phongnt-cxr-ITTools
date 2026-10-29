@@ -1,0 +1,221 @@
+48:    def silent_init(self, *args, **kwargs):
+79:    def __init__(self, api_instance):
+83:    def insert(self, index, text, tag="info"):
+100:    def see(self, index):
+103:    def delete(self, start, end):
+108:    def __init__(self):
+155:    def log(self, level, message):
+165:    def get_app_info(self):
+184:    def get_autostart_status(self):
+212:    def set_autostart(self, enable):
+269:    def _get_autostart_command(self):
+288:    def _classify_printer_port(self, port, name, is_offline):
+410:    def get_printers(self):
+718:    def print_test_page(self, printer_name):
+728:    def set_default_printer(self, printer_name):
+745:    def add_local_port(self, port_name):
+757:    def share_printer_lan(self, printer_name, share_name):
+768:    def delete_printer(self, printer_name):
+988:    def run_printer_fix_func(self, func_name):
+1058:    def fix_printer_error_codes(self, error_codes):
+1113:    def fix_spooler_services(self):
+1116:    def install_print_to_pdf(self):
+1119:    def fix_canon_2900(self):
+1122:    def start_one_click_printer_fix(self):
+1167:    def get_one_click_printer_fix_status(self):
+1181:    def one_click_fix_all_printers(self):
+1185:    def get_credentials(self):
+1212:    def save_credential(self, target, username, password):
+1234:    def delete_credential(self, target):
+1263:    def create_printer_share_user(self, username, password, description=""):
+1288:    def fix_data_sharing(self):
+1304:    def get_local_groups_and_users(self):
+1496:    def open_lusrmgr(self):
+1508:    def toggle_local_user_active(self, username, enable=True):
+1525:    def delete_local_user(self, username):
+1543:    def get_wincheck_audit(self):
+1552:    def clean_win_crack(self):
+1563:    def clean_office_keys(self):
+1578:    def install_win_key(self, key):
+1590:    def uninstall_win_key(self):
+1600:    def deactivate_win_digital(self):
+1610:    def restore_win_digital(self):
+1620:    def rearm_windows(self):
+1630:    def rearm_office(self):
+1640:    def install_office_key(self, key):
+1653:    def get_computer_info(self):
+1672:    def get_realtime_stats(self):
+1833:    def open_vendor_driver_site(self, vendor_name, service_tag=""):
+1867:    def export_specs_file(self, format_type, specs_data=None):
+1884:    def check_missing_drivers(self):
+1910:    def open_device_manager(self):
+1921:    def get_desktop_icon_settings(self):
+1939:    def save_desktop_icon_settings(self, settings):
+1954:    def open_taskbar_settings(self):
+1965:    def get_startup_entries(self):
+1974:    def toggle_startup_status(self, name, location, enable):
+1987:    def save_startup_entry(self, name, path, location="HKCU\\Run", old_name=None, old_location=None):
+2000:    def delete_startup_entry(self, name, location, path=None):
+2013:    def run_startup_entry(self, path):
+2021:    def browse_startup_file(self):
+2029:    def get_system_drives(self):
+2038:    def browse_folder_for_size(self):
+2047:    def analyze_folder_size(self, folder_path):
+2064:    def open_path_in_explorer(self, path):
+2072:    def delete_folder_item(self, path):
+2086:    def get_win_update_status(self):
+2094:    def set_windows_update(self, enable):
+2104:    def pause_windows_update_7days(self):
+2114:    def check_windows_update_now(self):
+2122:    def set_defender_status(self, enable):
+2132:    def run_defender_scan(self, scan_type="quick"):
+2142:    def set_uac_status(self, enable):
+2152:    def set_smartscreen_status(self, enable):
+2162:    def open_security_shortcut(self, target="update"):
+2173:    def get_installed_apps(self, category="all"):
+2195:    def run_deep_clean_uninstall(self, app_name, uninstall_cmd, install_location="", reg_key_name="", is_store=False, package_full_name=""):
+2207:    def skip_uninstall_step1(self):
+2218:    def get_bitlocker_drives(self):
+2227:    def set_bitlocker(self, drive, action):
+2238:    def get_bitlocker_drive_status(self, drive):
+2247:    def get_bitlocker_recovery_key(self, drive):
+2261:    def export_bitlocker_recovery_key(self, drive, save_path=None):
+2276:    def get_currency_rates(self):
+2332:    def get_firewall_status(self):
+2340:    def set_firewall_action(self, action):
+2350:    def get_firewall_rules_detail(self, filter_type="fps"):
+2359:    def get_network_adapters(self):
+2368:    def get_external_ip(self):
+2376:    def apply_ip_settings(self, adapter, mode, ip="", mask="255.255.255.0", gateway="", dns1="", dns2=""):
+2387:    def calculate_subnet(self, ip_str, cidr_val):
+2395:    def get_ipv6_status(self):
+2403:    def set_ipv6_status(self, enable):
+2416:    def open_app_folder(self, install_location, app_name):
+2425:    def run_tool_module(self, module_name, action, params=None):
+2483:    def _parse_lnk_target(filepath):
+2507:    def get_sendto_entries(self):
+2551:    def browse_sendto_file(self):
+2572:    def browse_sendto_folder(self):
+2587:    def create_sendto_shortcut(self, name, target_path):
+2647:    def delete_sendto_entry(self, entry_path):
+2691:    def open_sendto_folder(self):
+2699:    def open_sendto_entry_location(self, entry_path):
+2717:    def get_datetime_info(self):
+2752:    def configure_datetime(self, action, params=None):
+2816:    def get_browser_backup_info(self):
+2828:    def get_browser_backup_progress(self):
+2832:    def backup_browsers(self, selected_browsers, options, target_dir=""):
+2894:    def restore_browsers(self, backup_folder, selected_browsers, options=None):
+2957:    def open_browser_backup_folder(self, target_dir=""):
+2970:    def execute_immediate_power(self, action):
+2980:    def set_auto_shutdown(self, action, minutes, message=""):
+3020:    def get_scheduled_shutdown_tasks(self):
+3027:    def create_scheduled_shutdown_task(self, name, action, freq, time_str, days=None, date_str="", message=""):
+3036:    def toggle_scheduled_shutdown_task(self, task_name, enable):
+3045:    def delete_scheduled_shutdown_task(self, task_name):
+3054:    def run_scheduled_shutdown_task_now(self, task_name):
+3063:    def get_shutdown_event_logs(self, max_events=10, event_ids="1074,6008,41"):
+3078:    def export_shutdown_event_logs(self, max_events=100, event_ids="1074,6008,41", format_type="excel"):
+3092:    def open_exported_file(self, file_path):
+3102:    def _get_temp_hosts_path(self):
+3108:    def get_hosts_file(self):
+3145:    def update_hosts_temp(self, content):
+3155:    def open_hosts_temp_folder(self):
+3164:    def save_hosts_file(self, content):
+3297:    def save_hosts_as(self, content):
+3336:    def load_hosts_from_file(self):
+3368:    def restore_hosts_default(self):
+3381:    def open_hosts_folder(self):
+3390:    def optimize_office(self):
+3407:    def install_office_version(self, version_code, arch="x64", lang="vi-vn"):
+3498:    def get_office_install_progress(self):
+3541:    def cancel_office_install(self):
+3566:    def get_system_tweaks_status(self):
+3724:    def toggle_system_tweak(self, tweak_key, enable):
+3918:    def repair_taskbar(self):
+4028:    def _unblock_path_internal(self, target_path):
+4065:    def unblock_files_quick(self):
+4069:    def unblock_files_custom(self):
+4112:    def get_software_catalog(self):
+4424:    def _detect_catalog_installation_and_pin_status(self, catalog):
+4705:    def _is_pid_alive(self, pid):
+4723:    def _write_json_atomic(self, file_path, data):
+4743:    def _get_winget_session_paths(self):
+4755:    def get_winget_install_status(self):
+4850:    def check_bg_winget_session(self):
+4861:    def cancel_winget_batch(self):
+4912:    def reset_winget_session(self):
+4958:    def _append_to_winget_queue(self, package_ids):
+5018:    def install_winget_batch(self, package_ids):
+5114:    def _start_winget_notify_watcher(self, status_file: str):
+5246:    def _fire_tray_notify(self, title: str, message: str, notify_type: str = "info", duration_ms: int = 5000):
+5257:    def pin_app_shortcut(self, package_id, package_name=""):
+5318:    def get_ip_scanner_default_range(self):
+5326:    def scan_ip_range(self, subnet_str="", ip_start="", ip_end="", check_ping=True, check_hostname=True, check_mac=True, check_http_port=True, check_https_port=True, max_threads=50, ports_to_check=None):
+5348:    def scan_single_host_ports(self, target_host="", ports=None):
+5361:    def get_port_definitions(self):
+5368:    def open_rdp_connection(self, ip=""):
+5380:    def open_smb_share(self, ip=""):
+5397:    def open_winrm_session(self, ip=""):
+5410:    def get_classic_menu_status(self):
+5437:    def set_classic_menu_status(self, enable=True):
+5470:    def restart_explorer_process(self):
+5481:    def get_installed_drivers(self):
+5566:    def select_folder_dialog(self, title="Chọn thư mục", initial_dir=""):
+5585:    def _get_last_driver_backup_dir(self):
+5642:    def _save_last_driver_backup_dir(self, path):
+5657:    def get_driver_progress(self):
+5670:    def start_backup_drivers_async(self, target_dir=""):
+5888:    def start_restore_drivers_async(self, src_dir=""):
+6005:    def backup_drivers(self, target_dir=""):
+6008:    def restore_drivers(self, src_dir=""):
+6012:    def get_last_driver_backup_path(self):
+6017:    def open_folder_explorer(self, folder_path=""):
+6037:    def open_driver_backup_folder(self, folder_path=""):
+6042:    def get_windows_services(self):
+6124:    def manage_windows_service(self, service_name, action):
+6170:    def set_service_startup_type(self, service_name, startup_type):
+6197:    def open_services_msc(self):
+6208:    def get_nic_teams(self):
+6212:    def create_nic_team(self, name, adapters, mode="SwitchIndependent"):
+6221:    def remove_nic_team(self, name):
+6230:    def backup_dhcp_server(self, server="localhost", dest_path=""):
+6239:    def restore_dhcp_server(self, server="localhost", source_path=""):
+6248:    def export_dhcp_leases(self, server="localhost", save_path=""):
+6257:    def get_ad_domain_info(self):
+6261:    def export_ad_users(self, save_path=""):
+6270:    def connect_iscsi_target(self, ip, port="3260"):
+6279:    def list_iscsi_targets(self):
+6283:    def open_iscsi_cpl(self):
+6290:    def open_server_tools_gui(self):
+6298:    def get_boot_entries(self):
+6308:    def get_available_partitions(self):
+6316:    def inspect_winpe_source(self, source_path):
+6320:    def integrate_winpe_boot(self, source_path, target_drive="C:", boot_name="WinPE Rescue", selected_wim_rel=None, copy_apps=False):
+6335:    def add_wim_boot_entry(self, wim_path, boot_name="WinPE Boot", target_drive="C:"):
+6338:    def delete_boot_entry(self, guid):
+6347:    def set_default_boot(self, guid):
+6356:    def set_boot_timeout(self, seconds):
+6365:    def update_boot_name(self, guid, new_name):
+6374:    def open_boot_manager_gui(self):
+6381:    def browse_wim_file(self):
+6385:    def browse_winpe_file(self):
+6408:    def open_external_url(self, url):
+6421:    def open_website(self):
+6427:    def open_email(self):
+6433:    def get_app_info(self):
+6446:    def get_logs(self):
+6449:    def clear_logs(self):
+6453:    def minimize_to_tray(self):
+6460:    def exit_app(self):
+6469:    def get_zoom_screen_status(self):
+6476:    def start_zoom_screen(self):
+6485:    def stop_zoom_screen(self):
+6494:    def trigger_zoom_action(self, action_name):
+6503:    def save_zoom_screen_settings(self, settings):
+6512:    def open_zoom_screen_native_options(self):
+6521:    def update_zoom_screen_hotkey(self, action_name, new_hotkey_text):
+6530:    def reset_zoom_screen_hotkeys(self):
+6539:    def pause_zoom_screen_hotkeys(self):
+6546:    def resume_zoom_screen_hotkeys(self):
+6554:    def open_fluent_cleaner(self):

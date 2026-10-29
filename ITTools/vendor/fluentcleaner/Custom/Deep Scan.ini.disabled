@@ -1,0 +1,84 @@
+[Deep Clean]
+[Prefetch Folder]
+Section=Deep Scan
+DetectFile=%SystemRoot%\Prefetch\
+FileKey1=%SystemRoot%\Prefetch\|*.*
+Warning=May slow down first app launches after cleaning until Windows rebuilds the cache.
+Default=false
+
+[Power Efficiency Diagnostics]
+Section=Deep Scan
+DetectFile=%ProgramData%\Microsoft\Windows\Power Efficiency Diagnostics\
+FileKey1=%ProgramData%\Microsoft\Windows\Power Efficiency Diagnostics\|*.*|RECURSE
+
+[Windows Error Reports]
+Section=Deep Scan
+FileKey1=%ProgramData%\Microsoft\Windows\WER\ReportArchive\|*.*|REMOVESELF
+FileKey2=%ProgramData%\Microsoft\Windows\WER\ReportQueue\|*.*|REMOVESELF
+FileKey3=%LocalAppData%\Microsoft\Windows\WER\ReportArchive\|*.*|REMOVESELF
+FileKey4=%LocalAppData%\Microsoft\Windows\WER\ReportQueue\|*.*|REMOVESELF
+
+[Memory Dumps]
+Section=Deep Scan
+FileKey1=%SystemRoot%\|MEMORY.DMP
+FileKey2=%SystemRoot%\Minidump\|*.dmp|RECURSE
+FileKey3=%LocalAppData%\CrashDumps\|*.dmp|RECURSE
+Warning=Removes crash dumps needed for debugging. Only clean if you don't need them.
+
+[Delivery Optimization Cache]
+Section=Deep Scan
+DetectFile=%SystemRoot%\ServiceProfiles\NetworkService\AppData\Local\Microsoft\Windows\DeliveryOptimization\
+FileKey1=%SystemRoot%\ServiceProfiles\NetworkService\AppData\Local\Microsoft\Windows\DeliveryOptimization\Cache\|*.*|RECURSE
+
+[DISM and CBS Logs]
+Section=Deep Scan
+FileKey1=%SystemRoot%\Logs\DISM\|*.log
+FileKey2=%SystemRoot%\Logs\CBS\|*.log
+FileKey3=%SystemRoot%\Logs\MoSetup\|*.log
+
+[Thumbnail & Icon Cache]
+Section=Deep Scan
+DetectFile=%LocalAppData%\Microsoft\Windows\Explorer\thumbcache_*.db
+FileKey1=%LocalAppData%\Microsoft\Windows\Explorer\|thumbcache_*.db
+FileKey2=%LocalAppData%\Microsoft\Windows\Explorer\|iconcache_*.db
+Warning=May cause brief delays while Windows regenerates thumbnails and icons.
+
+[Windows Setup Logs]
+Section=Deep Scan
+DetectFile=%SystemRoot%\Panther\
+FileKey1=%SystemRoot%\Panther\|*.*|RECURSE
+
+[Angular Cache *]
+Section=Deep Scan
+DetectFile=%UserProfile%\.angular
+Default=False
+Warning=Removes the Angular cache stored in your user profile.
+FileKey1=%UserProfile%\.angular|*|RECURSE
+
+[Backup Files *]
+Section=Deep Scan
+DetectFile=%UserProfile%
+Default=False
+Warning=Inspect the analysis carefully for backup files you want to keep.
+FileKey1=%UserProfile%|*.bak|RECURSE
+
+[DS Store Files *]
+Section=Deep Scan
+DetectFile=%UserProfile%
+Default=False
+Warning=Scans the entire user profile and may take some time.
+FileKey1=%UserProfile%|.DS_Store|RECURSE
+
+[Thumbnail Databases *]
+Section=Deep Scan
+DetectFile=%UserProfile%
+Default=False
+Warning=Scans the entire user profile and may take some time.
+FileKey1=%UserProfile%|Thumbs.db|RECURSE
+
+[Vim Swap Files *]
+Section=Deep Scan
+DetectFile=%UserProfile%
+Default=False
+Warning=Inspect the analysis if Vim may still have unsaved files.
+FileKey1=%UserProfile%|*.swn;*.swo;*.swp|RECURSE

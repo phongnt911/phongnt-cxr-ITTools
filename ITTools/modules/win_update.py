@@ -502,6 +502,8 @@ def check_windows_update_now():
 
 def set_defender_status(enable):
     """Enables or disables Realtime Monitoring and Defender policy."""
+    if not enable:
+        return {"success": False, "message": "Ứng dụng không hỗ trợ tắt lớp bảo vệ này. Hãy quản lý chính sách trong Windows Security."}
     try:
         # Check if 3rd party antivirus is managing security
         status = get_win_update_status()
@@ -520,19 +522,6 @@ def set_defender_status(enable):
                 shell=True, capture_output=True, text=True
             )
             return {"success": True, "message": "✅ Đã BẬT bảo vệ thời gian thực Windows Defender!"}
-        else:
-            r = subprocess.run(
-                'powershell -NoProfile -Command "Set-MpPreference -DisableRealtimeMonitoring 1"',
-                shell=True, capture_output=True, text=True
-            )
-            if r.returncode != 0:
-                # Most likely Tamper Protection is active
-                subprocess.Popen("explorer.exe windowsdefender://threatsettings", shell=True)
-                return {
-                    "success": False,
-                    "message": "Không thể tắt Defender trực tiếp vì tính năng Tamper Protection đang bật. Vui lòng tắt Tamper Protection trong cửa sổ Windows Security vừa mở."
-                }
-            return {"success": True, "message": "🚫 Đã TẮT bảo vệ thời gian thực Windows Defender!"}
     except Exception as e:
         return {"success": False, "message": str(e)}
 
@@ -559,6 +548,8 @@ def run_defender_scan(scan_type="quick"):
 
 def set_uac_status(enable):
     """Enables or disables User Account Control (UAC)."""
+    if not enable:
+        return {"success": False, "message": "Ứng dụng không hỗ trợ tắt lớp bảo vệ này. Hãy quản lý chính sách trong Windows Security."}
     try:
         k = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, UAC_REG_PATH, 0, winreg.KEY_SET_VALUE)
         winreg.SetValueEx(k, 'EnableLUA', 0, winreg.REG_DWORD, 1 if enable else 0)
@@ -571,6 +562,8 @@ def set_uac_status(enable):
 
 def set_smartscreen_status(enable):
     """Enables or disables Windows SmartScreen guard."""
+    if not enable:
+        return {"success": False, "message": "Ứng dụng không hỗ trợ tắt lớp bảo vệ này. Hãy quản lý chính sách trong Windows Security."}
     try:
         val = "On" if enable else "Off"
         # 1. Explorer SmartScreen

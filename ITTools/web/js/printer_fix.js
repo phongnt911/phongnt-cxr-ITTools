@@ -725,20 +725,8 @@ Object.assign(AppController.prototype, {
 
   renderMockPrinterFixProgress() {
     const mockLogs = [
-      '▶ takeown /A /F "C:\\Windows\\System32\\spoolsv.exe"',
-      '▶ icacls "C:\\Windows\\System32\\spoolsv.exe" /grant builtin\\administrators:F /grant SYSTEM:F',
-      '▶ ren "C:\\Windows\\System32\\spoolsv.exe" spoolsv.exe.old',
-      '▶ reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Print" /v RpcAuthnLevelPrivacyEnabled /t REG_DWORD /d 0 /f',
-      '✓ Hoàn tất cấp quyền Takeown/icacls và thiết lập Registry RpcAuthnLevelPrivacyEnabled = 0.',
-      '⏳ [BƯỚC 2/4] Nạp 3 tệp hệ thống sạch vào C:\\Windows\\System32...',
-      '✓ Đã sao chép: win32spl.dll -> C:\\Windows\\System32\\win32spl.dll',
-      '✓ Đã sao chép: localspl.dll -> C:\\Windows\\System32\\localspl.dll',
-      '✓ Đã sao chép: spoolsv.exe -> C:\\Windows\\System32\\spoolsv.exe',
-      '✓ Đã nạp đầy đủ 3/3 tệp hệ thống sạch vào System32.',
-      '⏳ [BƯỚC 3/4] Cấu hình chế độ Automatic và khởi động lại dịch vụ Print Spooler...',
-      '✓ Dịch vụ Print Spooler đã được cấu hình Automatic và đang chạy bình thường.',
-      '🚀 [HOÀN TẤT] Bạn có thể thử kết nối lại máy in mạng LAN.',
-      '🔥 [SUCCESS] Quá trình Fix lỗi Print Spooler và nạp 3 file sạch đã thành công 100%!'
+      'Chế độ xem trước; chưa chạy SFC trên Windows.',
+      'Bản thật dùng sfc.exe /scannow và giữ nguyên bảo mật máy in.'
     ];
 
     let step = 0;

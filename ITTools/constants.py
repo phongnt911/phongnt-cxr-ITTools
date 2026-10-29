@@ -8,8 +8,8 @@ def get_resource_path(*rel_path):
     base = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base, *rel_path)
 
-APP_NAME = "IT Tool LTT"
-APP_VERSION = "1.0.0"
+APP_NAME = "IT Tool / SAGS-CXR"
+APP_VERSION = "1.0.3"
 APP_AUTHOR = "Nguyễn Thanh Phong"
 APP_ORGANIZATION = "IT SAGS-CXR"
 APP_UPSTREAM = "https://github.com/lethetuan/ITTools"

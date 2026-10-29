@@ -1,0 +1,151 @@
+{
+  "mode": "Read-response replay; live mutations blocked",
+  "tabs": [
+    {
+      "tab": "tab-computer-info",
+      "title": "Check Cấu Hình",
+      "visible": true
+    },
+    {
+      "tab": "tab-test-computer",
+      "title": "Test Computer",
+      "visible": true
+    },
+    {
+      "tab": "tab-auto-win",
+      "title": "Cài Win & Update",
+      "visible": true
+    },
+    {
+      "tab": "tab-startup",
+      "title": "Startup Manager",
+      "visible": true
+    },
+    {
+      "tab": "tab-uninstall",
+      "title": "Uninstall Manager",
+      "visible": true
+    },
+    {
+      "tab": "tab-bitlocker",
+      "title": "Tắt BitLocker & EFS",
+      "visible": true
+    },
+    {
+      "tab": "tab-printer-fix",
+      "title": "Fix Máy In - Share LAN",
+      "visible": true
+    },
+    {
+      "tab": "tab-ip-manager",
+      "title": "IP Manager & Subnet",
+      "visible": true
+    },
+    {
+      "tab": "tab-ip-scanner",
+      "title": "IP Scanner",
+      "visible": true
+    },
+    {
+      "tab": "tab-firewall",
+      "title": "Firewall Manager",
+      "visible": true
+    },
+    {
+      "tab": "tab-server-tools",
+      "title": "Server Tools",
+      "visible": true
+    },
+    {
+      "tab": "tab-fluent-cleaner",
+      "title": "Dọn dẹp • FluentCleaner",
+      "visible": true
+    },
+    {
+      "tab": "tab-zoom-screen",
+      "title": "Zoom Screen",
+      "visible": true
+    },
+    {
+      "tab": "tab-auto-shutdown",
+      "title": "Auto Shutdown",
+      "visible": true
+    },
+    {
+      "tab": "tab-hosts",
+      "title": "Hosts File Editor",
+      "visible": true
+    },
+    {
+      "tab": "tab-sendto",
+      "title": "SendTo Editor",
+      "visible": true
+    },
+    {
+      "tab": "tab-classic-menu",
+      "title": "Classic Win10 Menu",
+      "visible": true
+    },
+    {
+      "tab": "tab-desktop-icon",
+      "title": "Desktop Icon",
+      "visible": true
+    },
+    {
+      "tab": "tab-datetime",
+      "title": "Date Time Config",
+      "visible": true
+    },
+    {
+      "tab": "tab-boot-manager",
+      "title": "Boot Manager",
+      "visible": true
+    },
+    {
+      "tab": "tab-services",
+      "title": "Services Manager",
+      "visible": true
+    },
+    {
+      "tab": "tab-folder-size",
+      "title": "Folder Size Analyzer",
+      "visible": true
+    },
+    {
+      "tab": "tab-currency",
+      "title": "Currency Converter",
+      "visible": true
+    },
+    {
+      "tab": "tab-other-tweaks",
+      "title": "Other System Tweaks",
+      "visible": true
+    },
+    {
+      "tab": "tab-office",
+      "title": "Cài Đặt Office",
+      "visible": true
+    },
+    {
+      "tab": "tab-activation",
+      "title": "Kích Hoạt - Gỡ Crack",
+      "visible": true
+    },
+    {
+      "tab": "tab-backup-driver",
+      "title": "Backup Restore Driver",
+      "visible": true
+    },
+    {
+      "tab": "tab-browser-backup",
+      "title": "Browser Backup Restore",
+      "visible": true
+    },
+    {
+      "tab": "tab-free-software",
+      "title": "Kho Phần Mềm Free",
+      "visible": true
+    }
+  ],
+  "consoleErrors": []
+}

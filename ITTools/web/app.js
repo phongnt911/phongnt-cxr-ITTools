@@ -246,6 +246,7 @@ class AppController {
           if (titleEl) titleEl.innerText = label;
 
           const tabDescs = {
+            "tab-fluent-cleaner": "Quét và dọn cache, file tạm bằng FluentCleaner trong cửa sổ riêng.",
             "tab-computer-info": "Xem cấu hình chi tiết phần cứng, CPU, RAM, GPU, bo mạch chủ và hệ điều hành.",
             "tab-test-computer": "Bộ công cụ chẩn đoán bàn phím, màn hình, chuột, âm thanh và camera.",
             "tab-auto-win": "Cài đặt Windows tự động, cập nhật hệ thống và tối ưu Windows Update.",

@@ -274,6 +274,8 @@ def get_drive_status(drive):
 
 def set_bitlocker(drive, action):
     """Executes manage-bde -off or -on for a drive. Returns detailed status."""
+    if not isinstance(drive, str) or not re.fullmatch(r'[A-Za-z]:?\\?', drive):
+        return {"success": False, "message": "Ổ đĩa không hợp lệ."}
     drive_clean = drive.upper().rstrip('\\')
     if not drive_clean.endswith(':'):
         drive_clean += ':'
@@ -302,8 +304,7 @@ def set_bitlocker(drive, action):
         if action == "disable":
             # Tắt BitLocker (giải mã ổ đĩa)
             rc, out = run(["manage-bde", "-off", drive_clean])
-            ok_keywords = ["in progress", "decryption", "disabled", "đang", "giải mã", "protection"]
-            if rc == 0 or any(k in out.lower() for k in ok_keywords):
+            if rc == 0:
                 return {
                     "success": True,
                     "message": f"Đã phát lệnh tắt BitLocker cho ổ {drive_clean}. Đang tiến hành giải mã! Chi tiết: {out[:200]}",
@@ -324,8 +325,7 @@ def set_bitlocker(drive, action):
             # Bật BitLocker — thử không cần TPM (SkipHardwareTest + RecoveryPassword)
             # Bước 1: Thử -on với -skiphardwaretest để bỏ qua TPM
             rc, out = run(["manage-bde", "-on", drive_clean, "-used", "-skiphardwaretest"])
-            ok_keywords = ["in progress", "encryption", "password", "protected", "bắt đầu", "đang"]
-            if rc == 0 or any(k in out.lower() for k in ok_keywords):
+            if rc == 0:
                 return {
                     "success": True,
                     "message": f"Đã kích hoạt BitLocker cho ổ {drive_clean}. Đang tiến hành mã hóa! Chi tiết: {out[:200]}",
@@ -336,12 +336,12 @@ def set_bitlocker(drive, action):
 
             # Bước 2: Nếu thất bại, thử PowerShell Enable-BitLocker với RecoveryPassword
             ps_cmd = (
-                f'Enable-BitLocker -MountPoint "{drive_clean}" '
+                f'$ErrorActionPreference="Stop"; Enable-BitLocker -MountPoint "{drive_clean}" '
                 f'-EncryptionMethod XtsAes128 '
                 f'-RecoveryPasswordProtector -SkipHardwareTest'
             )
             rc2, out2 = run(["powershell", "-NoProfile", "-NonInteractive", "-Command", ps_cmd], timeout=25)
-            if rc2 == 0 or any(k in out2.lower() for k in ok_keywords):
+            if rc2 == 0:
                 return {
                     "success": True,
                     "message": f"Đã bật BitLocker qua PowerShell cho ổ {drive_clean}! Chi tiết: {out2[:200]}",
@@ -368,7 +368,9 @@ def set_bitlocker(drive, action):
 
 
 def get_bitlocker_recovery_key(drive):
-    """Retrieves or creates BitLocker Recovery Key(s) for a specified drive volume."""
+    """Retrieves existing BitLocker Recovery Key(s) for a specified drive volume."""
+    if not isinstance(drive, str) or not re.fullmatch(r'[A-Za-z]:?\\?', drive):
+        return {"success": False, "message": "Ổ đĩa không hợp lệ."}
     drive_clean = drive.upper().rstrip('\\')
     if not drive_clean.endswith(':'):
         drive_clean += ':'
@@ -402,28 +404,6 @@ def get_bitlocker_recovery_key(drive):
                 keys = extract_keys(res.stdout)
         except Exception as e:
             print("PowerShell Get-BitLockerVolume error:", e)
-
-    # Method 3: If no key protector exists, create a new RecoveryPassword protector
-    if not keys:
-        try:
-            cmd_add = f'manage-bde -protectors -add {drive_clean} -rp'
-            res_add = subprocess.run(cmd_add, shell=True, capture_output=True, text=True, timeout=15)
-            output_add = (res_add.stdout or "") + "\n" + (res_add.stderr or "")
-            keys = extract_keys(output_add)
-
-            if not keys:
-                ps_add = f'Add-BitLockerKeyProtector -MountPoint "{drive_clean}" -RecoveryPasswordProtector'
-                res_ps_add = subprocess.run(["powershell", "-NoProfile", "-Command", ps_add], capture_output=True, text=True, timeout=15)
-                output_ps = (res_ps_add.stdout or "") + "\n" + (res_ps_add.stderr or "")
-                keys = extract_keys(output_ps)
-
-            if not keys:
-                # Query manage-bde -get again after creation
-                res_get2 = subprocess.run(["manage-bde", "-protectors", "-get", drive_clean], capture_output=True, text=True, timeout=10)
-                if res_get2.stdout:
-                    keys = extract_keys(res_get2.stdout)
-        except Exception as e:
-            print("Error creating key protector:", e)
 
     if keys:
         return {

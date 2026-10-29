@@ -1,0 +1,691 @@
+[
+  {
+    "case": "app",
+    "method": "get_app_info",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.0,
+    "keys": [
+      "author",
+      "contact_url",
+      "email",
+      "is_admin",
+      "name",
+      "organization",
+      "upstream",
+      "version",
+      "website"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "winget_session",
+    "method": "check_bg_winget_session",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.0,
+    "keys": [
+      "has_session"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "autostart",
+    "method": "get_autostart_status",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.0,
+    "keys": [
+      "enabled",
+      "path"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "credentials",
+    "method": "get_credentials",
+    "status": "PASS",
+    "type": "list",
+    "seconds": 0.05,
+    "keys": [],
+    "items": 17,
+    "errors": []
+  },
+  {
+    "case": "local_users",
+    "method": "get_local_groups_and_users",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.02,
+    "keys": [
+      "computer_name",
+      "groups",
+      "success",
+      "timestamp",
+      "total_groups",
+      "total_users",
+      "users"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "external_ip",
+    "method": "get_external_ip",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.62,
+    "keys": [
+      "ip",
+      "success"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "monitoring",
+    "method": "get_realtime_stats",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.75,
+    "keys": [
+      "battery",
+      "cpu_pct",
+      "disk_read",
+      "disk_read_kb",
+      "disk_write",
+      "disk_write_kb",
+      "net_rx",
+      "net_rx_kb",
+      "net_tx",
+      "net_tx_kb",
+      "partitions_usage",
+      "ram_pct",
+      "ram_total",
+      "ram_used",
+      "success"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "printers",
+    "method": "get_printers",
+    "status": "PASS",
+    "type": "list",
+    "seconds": 1.61,
+    "keys": [],
+    "items": 3,
+    "errors": []
+  },
+  {
+    "case": "desktop_icons",
+    "method": "get_desktop_icon_settings",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.02,
+    "keys": [
+      "computer",
+      "control_panel",
+      "network",
+      "recycle_bin",
+      "search_icon",
+      "taskbar_left",
+      "user_files",
+      "weather_off"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "license_audit",
+    "method": "get_wincheck_audit",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 2.94,
+    "keys": [
+      "checks",
+      "count",
+      "indicators",
+      "keys",
+      "level",
+      "summary",
+      "title",
+      "typeLabel",
+      "typeValue"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "drives",
+    "method": "get_system_drives",
+    "status": "PASS",
+    "type": "list",
+    "seconds": 0.01,
+    "keys": [],
+    "items": 3,
+    "errors": []
+  },
+  {
+    "case": "missing_drivers",
+    "method": "check_missing_drivers",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 1.89,
+    "keys": [
+      "message",
+      "missing_drivers",
+      "success",
+      "total"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "startup",
+    "method": "get_startup_entries",
+    "status": "PASS",
+    "type": "list",
+    "seconds": 1.89,
+    "keys": [],
+    "items": 18,
+    "errors": []
+  },
+  {
+    "case": "windows_security",
+    "method": "get_win_update_status",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 1.62,
+    "keys": [
+      "defender_badge",
+      "defender_enabled",
+      "defender_status_text",
+      "has_third_party",
+      "smartscreen_badge",
+      "smartscreen_enabled",
+      "smartscreen_status_text",
+      "success",
+      "third_party_name",
+      "uac_badge",
+      "uac_enabled",
+      "uac_status_text",
+      "wu_badge",
+      "wu_enabled",
+      "wu_status_text"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "currency",
+    "method": "get_currency_rates",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 1.16,
+    "keys": [
+      "is_live",
+      "rates",
+      "success",
+      "updated_at"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "computer",
+    "method": "get_computer_info",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 7.31,
+    "keys": [
+      "battery",
+      "bios_info",
+      "cpu",
+      "disks",
+      "gpus",
+      "mainboard",
+      "missing_drivers",
+      "os",
+      "partitions",
+      "ram_modules",
+      "ram_total",
+      "service_tag",
+      "success",
+      "system"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "firewall_rules",
+    "method": "get_firewall_rules_detail",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.62,
+    "keys": [
+      "rules",
+      "success",
+      "total"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "firewall",
+    "method": "get_firewall_status",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 2.31,
+    "keys": [
+      "all_on",
+      "allow_inbound",
+      "any_on",
+      "domain",
+      "domain_gpo_locked",
+      "file_sharing",
+      "file_sharing_count",
+      "kaspersky_active",
+      "ping",
+      "ping_count",
+      "policies",
+      "private",
+      "public",
+      "rdp",
+      "rdp_count",
+      "success"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "subnet",
+    "method": "calculate_subnet",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.03,
+    "keys": [
+      "data",
+      "success"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "network",
+    "method": "get_network_adapters",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.11,
+    "keys": [
+      "data",
+      "success"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "sendto",
+    "method": "get_sendto_entries",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.01,
+    "keys": [
+      "entries",
+      "sendto_path",
+      "success"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "datetime",
+    "method": "get_datetime_info",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.05,
+    "keys": [
+      "current_date",
+      "current_time",
+      "day_of_week",
+      "short_date_format",
+      "success",
+      "timezone"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "browser_backup",
+    "method": "get_browser_backup_info",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 1.11,
+    "keys": [
+      "browsers",
+      "default_backup_dir",
+      "history",
+      "success"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "ipv6",
+    "method": "get_ipv6_status",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 1.67,
+    "keys": [
+      "count",
+      "enabled",
+      "success",
+      "text"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "shutdown_logs",
+    "method": "get_shutdown_event_logs",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.7,
+    "keys": [
+      "logs",
+      "stats",
+      "success"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "hosts",
+    "method": "get_hosts_file",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.0,
+    "keys": [
+      "content",
+      "message",
+      "path",
+      "success",
+      "temp_path"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "office_status",
+    "method": "get_office_install_progress",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.0,
+    "keys": [
+      "data",
+      "success"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "system_tweaks",
+    "method": "get_system_tweaks_status",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.0,
+    "keys": [
+      "data",
+      "success"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "shutdown_tasks",
+    "method": "get_scheduled_shutdown_tasks",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 1.24,
+    "keys": [
+      "success",
+      "tasks"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "winget_status",
+    "method": "get_winget_install_status",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.0,
+    "keys": [
+      "canceled",
+      "current_index",
+      "current_package_id",
+      "current_package_name",
+      "error_count",
+      "finished",
+      "is_running",
+      "log",
+      "percentage",
+      "pid",
+      "state",
+      "status_text",
+      "success_count",
+      "total"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "software_catalog",
+    "method": "get_software_catalog",
+    "status": "PASS",
+    "type": "list",
+    "seconds": 0.03,
+    "keys": [],
+    "items": 238,
+    "errors": []
+  },
+  {
+    "case": "scan_defaults",
+    "method": "get_ip_scanner_default_range",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.02,
+    "keys": [
+      "end_ip",
+      "label",
+      "local_ip",
+      "start_ip",
+      "subnet",
+      "wildcard"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "port_definitions",
+    "method": "get_port_definitions",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.02,
+    "keys": [
+      "data",
+      "success"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "classic_menu",
+    "method": "get_classic_menu_status",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.0,
+    "keys": [
+      "badge_color",
+      "badge_text",
+      "description",
+      "enabled",
+      "mode",
+      "status_text",
+      "success"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "drivers",
+    "method": "get_installed_drivers",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.2,
+    "keys": [
+      "drivers",
+      "success",
+      "total"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "services",
+    "method": "get_windows_services",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.8,
+    "keys": [
+      "services",
+      "success",
+      "total"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "nic_teams",
+    "method": "get_nic_teams",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.7,
+    "keys": [
+      "success",
+      "teams"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "iscsi",
+    "method": "list_iscsi_targets",
+    "status": "FAIL",
+    "type": "dict",
+    "seconds": 0.03,
+    "keys": [
+      "message",
+      "success"
+    ],
+    "items": null,
+    "errors": [
+      "[WinError 740] The requested operation requires elevation"
+    ]
+  },
+  {
+    "case": "boot",
+    "method": "get_boot_entries",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.09,
+    "keys": [
+      "default_guid",
+      "entries",
+      "success",
+      "timeout"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "partitions",
+    "method": "get_available_partitions",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.02,
+    "keys": [
+      "partitions",
+      "success"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "zoom",
+    "method": "get_zoom_screen_status",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 0.02,
+    "keys": [
+      "action_names",
+      "active_action",
+      "binary_found",
+      "binary_path",
+      "custom_hotkeys",
+      "gui_running",
+      "hotkey_status",
+      "livezoom_active",
+      "pid",
+      "running",
+      "settings"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "ad_domain",
+    "method": "get_ad_domain_info",
+    "status": "FAIL",
+    "type": "dict",
+    "seconds": 1.09,
+    "keys": [
+      "message",
+      "success"
+    ],
+    "items": null,
+    "errors": [
+      "Không tìm thấy thông tin Active Directory (Máy chưa Join Domain hoặc chưa cài RSAT)."
+    ]
+  },
+  {
+    "case": "bitlocker",
+    "method": "get_bitlocker_drives",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 10.78,
+    "keys": [
+      "data",
+      "success"
+    ],
+    "items": null,
+    "errors": []
+  },
+  {
+    "case": "uninstall",
+    "method": "get_installed_apps",
+    "status": "PASS",
+    "type": "dict",
+    "seconds": 17.52,
+    "keys": [
+      "data",
+      "success"
+    ],
+    "items": null,
+    "errors": []
+  }
+]

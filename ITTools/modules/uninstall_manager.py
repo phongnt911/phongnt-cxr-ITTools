@@ -827,6 +827,11 @@ def run_deep_clean_uninstall(app_name, uninstall_cmd, install_location=None, reg
         results["step1_success"] = store_res["success"]
         results["step1_msg"] = store_res["message"]
 
+        if not results["step1_success"]:
+            results["success"] = False
+            results["summary"] = results["step1_msg"] + " Không dọn dữ liệu vì chưa xác nhận gỡ cài đặt."
+            return results
+
         # Step 2: Clean registry leftovers (vendor/app keys in HKCU/HKLM Software)
         try:
             del_keys = deep_scan_leftover_registry(pkg_name or app_name, "")
@@ -890,43 +895,31 @@ def run_deep_clean_uninstall(app_name, uninstall_cmd, install_location=None, reg
             start_time = time.time()
             while time.time() - start_time < max_wait:
                 if _skip_step1_flag:
-                    results["step1_msg"] = "ℹ️ Đã chuyển sang quét dọn Registry theo yêu cầu người dùng."
+                    results["step1_msg"] = "Đã ngừng chờ; trình gỡ có thể vẫn đang chạy. Không dọn dữ liệu."
                     break
-                if proc.poll() is not None:
-                    results["step1_msg"] = "✅ Đã chạy xong trình gỡ cài đặt gốc."
-                    break
-                if reg_key_name and not _check_reg_key_exists(reg_key_name):
-                    # Uninstaller has already finished and removed the registry key!
-                    time.sleep(1.5)  # Brief grace period for disk cleanup
-                    results["step1_msg"] = "✅ Phần mềm đã được gỡ cài đặt hoàn tất."
+                exit_code = proc.poll()
+                if exit_code is not None:
+                    results["step1_success"] = exit_code in (0, 1641, 3010)
+                    results["step1_msg"] = f"Trình gỡ cài đặt đã kết thúc (mã {exit_code})."
                     break
                 time.sleep(1)
             else:
-                try:
-                    proc.kill()
-                except Exception:
-                    pass
-                results["step1_msg"] = "⚠️ Hết thời gian chờ trình gỡ gốc. Chuyển sang quét dọn Registry & Thư mục rác."
-
-            results["step1_success"] = True
+                results["step1_msg"] = "Hết thời gian chờ; trình gỡ có thể vẫn đang chạy. Không dọn dữ liệu."
         else:
-            results["step1_msg"] = "ℹ️ Step 1: Không tìm thấy lệnh gỡ cài đặt."
-            results["step1_success"] = True
+            results["step1_msg"] = "Không tìm thấy lệnh gỡ cài đặt. Không dọn dữ liệu."
 
     except Exception as e:
         results["step1_msg"] = f"⚠️ Step 1 Error: {e}"
 
-    # Wait for the uninstaller to release all file/registry locks
+    if results["step1_success"] and reg_key_name:
+        results["step1_success"] = not _check_reg_key_exists(reg_key_name)
+    if not results["step1_success"]:
+        results["success"] = False
+        results["summary"] = results["step1_msg"] + " Chưa xác nhận gỡ cài đặt; không xóa Registry hoặc thư mục."
+        return results
+
+    # Uninstaller completed successfully; allow file locks to be released.
     time.sleep(1.5)
-    kill_app_processes(app_name, install_location)
-
-    # Verify whether Step 1 actually removed the app from registry
-    if reg_key_name:
-        still_exists = _check_reg_key_exists(reg_key_name)
-        results["step1_success"] = not still_exists
-    else:
-        results["step1_success"] = True
-
     # ── STEP 2: Deep Scan & Clean Windows Registry leftovers ──────────────
     try:
         del_keys = deep_scan_leftover_registry(app_name, reg_key_name)

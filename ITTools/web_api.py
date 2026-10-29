@@ -16,6 +16,7 @@ import datetime
 import time
 import queue
 import shutil
+from security_utils import validate_host, save_windows_credential
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from constants import APP_NAME, APP_VERSION, APP_AUTHOR, APP_ORGANIZATION, APP_UPSTREAM, APP_EMAIL, APP_WEBSITE, APP_CONTACT_URL, AUTOSTART_KEY_NAME
@@ -176,6 +177,7 @@ class Api:
             "organization": APP_ORGANIZATION,
             "upstream": APP_UPSTREAM,
             "website": APP_WEBSITE,
+            "contact_url": APP_CONTACT_URL,
             "is_admin": is_admin
         }
 
@@ -1222,50 +1224,10 @@ foreach ($p in $names) {{
             if not clean_target:
                 return {"success": False, "message": "Target (Tên máy chủ / IP) không hợp lệ!"}
 
-            username = username.strip()
-            password = password.strip() if password else ""
-
-            CREATE_NO_WINDOW = 0x08000000
-
-            # Lưu đồng thời Domain Credential (/add) và Generic Credential (/generic) để tương thích tối đa chia sẻ mạng LAN và máy in
-            success = False
-            last_err = ""
-
-            # 1. Lưu dạng Domain Password
-            if password:
-                r1 = subprocess.run(
-                    f'cmdkey /add:"{clean_target}" /user:"{username}" /pass:"{password}"',
-                    shell=True, capture_output=True, text=True,
-                    creationflags=CREATE_NO_WINDOW, encoding="utf-8", errors="ignore"
-                )
-                r2 = subprocess.run(
-                    f'cmdkey /generic:"{clean_target}" /user:"{username}" /pass:"{password}"',
-                    shell=True, capture_output=True, text=True,
-                    creationflags=CREATE_NO_WINDOW, encoding="utf-8", errors="ignore"
-                )
-            else:
-                r1 = subprocess.run(
-                    ['cmdkey', f'/add:{clean_target}', f'/user:{username}', '/pass:'],
-                    input='\n', capture_output=True, text=True,
-                    creationflags=CREATE_NO_WINDOW, encoding="utf-8", errors="ignore"
-                )
-                r2 = subprocess.run(
-                    ['cmdkey', f'/generic:{clean_target}', f'/user:{username}', '/pass:'],
-                    input='\n', capture_output=True, text=True,
-                    creationflags=CREATE_NO_WINDOW, encoding="utf-8", errors="ignore"
-                )
-
-            if r1.returncode == 0 or r2.returncode == 0:
-                success = True
-            else:
-                last_err = (r1.stderr or r1.stdout or r2.stderr or r2.stdout).strip()
-
-            if success:
-                self.log("SUCCESS", f"Đã lưu Windows Credential cho Target: {clean_target} (User: {username})")
-                return {"success": True, "message": f"✅ Đã lưu thành công Windows Credential cho '{clean_target}' (User: {username})!"}
-            else:
-                self.log("ERROR", f"Lỗi lưu credential: {last_err}")
-                return {"success": False, "message": f"Lỗi khi lưu Credential: {last_err or 'Không xác định'}"}
+            clean_target = validate_host(clean_target)
+            save_windows_credential(clean_target, username.strip(), password or "")
+            self.log("SUCCESS", f"Đã lưu Windows Credential cho {clean_target}")
+            return {"success": True, "message": f"Đã lưu Windows Credential cho {clean_target}"}
         except Exception as e:
             self.log("ERROR", f"Lỗi ngoại lệ save_credential: {e}")
             return {"success": False, "message": f"Lỗi: {str(e)}"}
@@ -1282,15 +1244,15 @@ foreach ($p in $names) {{
 
             CREATE_NO_WINDOW = 0x08000000
             r = subprocess.run(
-                f'cmdkey /delete:"{clean_target}"',
-                shell=True, capture_output=True, text=True,
+                ['cmdkey.exe', f'/delete:{clean_target}'],
+                shell=False, capture_output=True, text=True,
                 creationflags=CREATE_NO_WINDOW, encoding="utf-8", errors="ignore"
             )
 
             # Nếu target có dạng TERMSRV/... hoặc IP, thử xóa cả dạng gốc
             if r.returncode != 0 and "/" in clean_target:
                 sub_target = clean_target.split("/", 1)[1]
-                subprocess.run(f'cmdkey /delete:"{sub_target}"', shell=True, creationflags=CREATE_NO_WINDOW)
+                subprocess.run(['cmdkey.exe', f'/delete:{sub_target}'], shell=False, creationflags=CREATE_NO_WINDOW)
 
             self.log("SUCCESS", f"Đã xóa Credential: {clean_target}")
             return {"success": True, "message": f"✅ Đã xóa Credential '{clean_target}'"}
@@ -1300,149 +1262,36 @@ foreach ($p in $names) {{
 
     # ── USER CREATION FOR PRINTER SHARE ───────────────────────────────────
     def create_printer_share_user(self, username, password, description=""):
-        if not username or not password:
-            return {"success": False, "message": "Vui lòng nhập Username và Mật khẩu!"}
-
-        username = username.strip()
-        password = password.strip()
-
-        # Kiểm tra độ dài mật khẩu (Windows Domain & Local Security Policy thường yêu cầu tối thiểu 8 ký tự)
-        if len(password) < 8:
-            return {
-                "success": False,
-                "message": "⚠️ Mật khẩu quá ngắn! Windows yêu cầu mật khẩu tối thiểu 8 ký tự (khuyến nghị có cả chữ hoa, chữ thường và số, VD: Printer@123456) theo chính sách bảo mật hệ thống."
-            }
-
-        # Kiểm tra quyền Administrator
-        is_admin = False
+        """Create a standard sharing user without exposing its password in logs/argv."""
+        if not re.fullmatch(r'[A-Za-z0-9_-]{1,20}', username or '') or not password or '\0' in password:
+            return {"success": False, "message": "Tên tài khoản phải gồm 1–20 chữ/số/_/-, mật khẩu không được để trống."}
+        env = os.environ.copy()
+        env.update(ITTOOLS_NEW_USER=username, ITTOOLS_NEW_PASSWORD=password, ITTOOLS_NEW_DESCRIPTION=description)
+        script = (
+            "$ErrorActionPreference='Stop'; "
+            "$secret=ConvertTo-SecureString $env:ITTOOLS_NEW_PASSWORD -AsPlainText -Force; "
+            "New-LocalUser -Name $env:ITTOOLS_NEW_USER -Password $secret -Description $env:ITTOOLS_NEW_DESCRIPTION | Out-Null; "
+            "$group=Get-LocalGroup -SID 'S-1-5-32-545'; "
+            "Add-LocalGroupMember -Group $group -Member $env:ITTOOLS_NEW_USER"
+        )
         try:
-            is_admin = (ctypes.windll.shell32.IsUserAnAdmin() != 0)
+            result = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', script],
+                                    env=env, capture_output=True, text=True, timeout=60)
+            if result.returncode:
+                return {"success": False, "message": "Không hoàn tất tạo tài khoản chuẩn. Kiểm tra tài khoản đã tồn tại và chính sách mật khẩu trong Local Users and Groups."}
+            message = f"Đã tạo tài khoản chuẩn {username}; chỉ cấp quyền máy in/thư mục cần thiết trong Windows."
+            self.log("SUCCESS", message)
+            return {"success": True, "message": message}
         except Exception:
-            pass
+            return {"success": False, "message": "Không hoàn tất tạo tài khoản. Kiểm tra quyền quản trị và chính sách Windows."}
 
-        if not is_admin:
-            return {
-                "success": False,
-                "message": "❌ Yêu cầu quyền Administrator để tạo User Windows!\nVui lòng đóng phần mềm và mở lại bằng cách: Click chuột phải vào file exe -> chọn 'Run as administrator'."
-            }
 
-        try:
-            CREATE_NO_WINDOW = 0x08000000
-            results = []
-            errors = []
-
-            def run_cmd(cmd):
-                r = subprocess.run(
-                    cmd, shell=True,
-                    capture_output=True, text=True,
-                    creationflags=CREATE_NO_WINDOW,
-                    encoding="utf-8", errors="ignore"
-                )
-                out = (r.stdout + r.stderr).strip()
-                return r.returncode, out
-
-            # 1. Tạo tài khoản user mới
-            rc, out = run_cmd(f'net user "{username}" "{password}" /add /expires:never /active:yes')
-            if rc != 0:
-                # Nếu user đã tồn tại (rc=2 hoặc thông báo already exists)
-                if "already" in out.lower() or "tồn tại" in out or rc == 2:
-                    run_cmd(f'net user "{username}" "{password}" /active:yes')
-                    results.append(f"User '{username}' đã tồn tại, đã cập nhật lại mật khẩu.")
-                else:
-                    # Thử tạo qua PowerShell New-LocalUser
-                    desc_text = description if description else "Tai khoan chia se may in"
-                    ps_cmd = (
-                        f'powershell -NoProfile -Command "'
-                        f'$p = ConvertTo-SecureString \'{password}\' -AsPlainText -Force; '
-                        f'New-LocalUser -Name \'{username}\' -Password $p -PasswordNeverExpires '
-                        f'-Description \'{desc_text}\'"'
-                    )
-                    rc_ps, out_ps = run_cmd(ps_cmd)
-                    if rc_ps == 0:
-                        results.append(f"Đã tạo tài khoản '{username}' (qua PowerShell).")
-                    else:
-                        errors.append(f"Tạo user thất bại: {out or out_ps}")
-            else:
-                results.append(f"Đã tạo tài khoản '{username}'.")
-
-            if errors:
-                msg = "Hoàn thành có lỗi:\n" + "\n".join(errors)
-                self.log("WARNING", msg)
-                return {"success": False, "message": msg}
-
-            # 2. Đặt mô tả nếu có
-            if description:
-                run_cmd(f'net user "{username}" /comment:"{description}"')
-
-            # 3. Mật khẩu không hết hạn (Ưu tiên PowerShell Set-LocalUser, tương thích Windows 10/11)
-            rc2b, out2b = run_cmd(
-                f'powershell -NoProfile -Command "Set-LocalUser -Name \'{username}\' -PasswordNeverExpires $true"'
-            )
-            if rc2b == 0:
-                results.append("Đã đặt mật khẩu vĩnh viễn không hết hạn.")
-            else:
-                # Fallback WMIC nếu có
-                rc2, _ = run_cmd(f'wmic useraccount where name="{username}" set PasswordExpires=FALSE')
-                if rc2 == 0:
-                    results.append("Đã đặt mật khẩu vĩnh viễn không hết hạn (WMIC).")
-
-            # 4. Thêm vào nhóm quản trị hoặc nhóm Users để phân quyền in mạng LAN
-            # Dùng SID S-1-5-32-544 (Administrators) để không phụ thuộc ngôn ngữ Windows
-            ps_group_cmd = (
-                f'powershell -NoProfile -Command "'
-                f'$adminGroup = (Get-LocalGroup -SID \'S-1-5-32-544\').Name; '
-                f'Add-LocalGroupMember -Group $adminGroup -Member \'{username}\'"'
-            )
-            rc3_ps, _ = run_cmd(ps_group_cmd)
-            if rc3_ps == 0:
-                results.append(f"Đã thêm '{username}' vào nhóm Administrators.")
-            else:
-                # Fallback net localgroup
-                rc3, out3 = run_cmd(f'net localgroup Administrators "{username}" /add')
-                if rc3 == 0:
-                    results.append(f"Đã thêm '{username}' vào nhóm Administrators.")
-                else:
-                    rc3b, _ = run_cmd(f'net localgroup Users "{username}" /add')
-                    if rc3b == 0:
-                        results.append(f"Đã thêm '{username}' vào nhóm Users.")
-
-            # 5. Bật AllowInsecureGuestAuth cho chia sẻ máy in LAN
-            run_cmd(
-                r'reg add "HKLM\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters" '
-                r'/v AllowInsecureGuestAuth /t REG_DWORD /d 1 /f'
-            )
-
-            # 6. Tắt Password Protected Sharing (forceguest = 0 để chứng thực bằng user vừa tạo)
-            run_cmd(
-                r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" '
-                r'/v forceguest /t REG_DWORD /d 0 /f'
-            )
-
-            # 7. Bật File and Printer Sharing qua Firewall
-            run_cmd('netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=Yes')
-
-            # 8. Đặt tài khoản active
-            run_cmd(f'net user "{username}" /active:yes')
-
-            # 9. Tự động lưu luôn vào Windows Credential của máy nội bộ nếu người dùng muốn
-            self.save_credential("127.0.0.1", username, password)
-            self.save_credential("localhost", username, password)
-
-            summary = f"✅ Tạo User '{username}' thành công!\n" + "\n".join(f"• {r}" for r in results) + \
-                      f"\n\n📌 Thông tin đăng nhập từ máy trạm:\n- User: {username}\n- Password: {password}"
-            self.log("SUCCESS", summary)
-            return {"success": True, "message": summary}
-        except Exception as e:
-            self.log("ERROR", f"Lỗi tạo user: {e}")
-            return {"success": False, "message": f"Lỗi hệ thống: {str(e)}"}
-
-    # ── DATA SHARING FIX ──────────────────────────────────────────────────
     def fix_data_sharing(self):
         try:
             subprocess.run('netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=Yes', shell=True)
             subprocess.run('netsh advfirewall firewall set rule group="Network Discovery" new enable=Yes', shell=True)
             subprocess.run(r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v forceguest /t REG_DWORD /d 0 /f', shell=True)
-            subprocess.run(r'reg add "HKLM\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters" /v AllowInsecureGuestAuth /t REG_DWORD /d 1 /f', shell=True)
+            subprocess.run(r'reg add "HKLM\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters" /v AllowInsecureGuestAuth /t REG_DWORD /d 0 /f', shell=True)
             subprocess.run(r'reg add "HKLM\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" /v AutoShareWks /t REG_DWORD /d 1 /f', shell=True)
             for svc in ["LanmanServer", "LanmanWorkstation", "fdPHost", "FDResPub", "SSDPSRV", "upnphost"]:
                 subprocess.run(f"sc config {svc} start= auto", shell=True)
@@ -2575,57 +2424,25 @@ foreach ($p in $names) {{
 
     # ── GENERIC ACTION DISPATCHER ─────────────────────────────────────────
     def run_tool_module(self, module_name, action, params=None):
-        """Runs background tasks for any of the 25 modules."""
-        self.log("INFO", f"Đang chạy {module_name} -> {action}...")
+        """Legacy entry point: dispatch only explicit supported actions."""
+        params = params or {}
+        if not isinstance(params, dict):
+            return {"success": False, "message": "Tham số không hợp lệ."}
         try:
-            if module_name == "win_update":
-                if action == "enable":
-                    subprocess.run("sc config wuauserv start= auto & sc start wuauserv", shell=True)
-                    self.log("SUCCESS", "Đã bật dịch vụ Windows Update!")
-                else:
-                    subprocess.run("sc config wuauserv start= disabled & net stop wuauserv", shell=True)
-                    self.log("SUCCESS", "Đã tắt dịch vụ Windows Update!")
-            elif module_name == "firewall":
-                if action == "enable":
-                    subprocess.run("netsh advfirewall set allprofiles state on", shell=True)
-                    self.log("SUCCESS", "Đã bật Windows Firewall!")
-                else:
-                    subprocess.run("netsh advfirewall set allprofiles state off", shell=True)
-                    self.log("SUCCESS", "Đã tắt Windows Firewall!")
-            elif module_name == "bitlocker":
-                subprocess.run("manage-bde -off C:", shell=True)
-                self.log("SUCCESS", "Đã gửi lệnh tắt BitLocker trên ổ C:!")
-            elif module_name == "classic_menu":
-                if action == "enable":
-                    subprocess.run(r'reg add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /f /ve', shell=True)
-                    subprocess.run("taskkill /f /im explorer.exe & start explorer.exe", shell=True)
-                    self.log("SUCCESS", "Đã bật Menu Chuột Phải Classic Win 10!")
-                else:
-                    subprocess.run(r'reg delete "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}" /f', shell=True)
-                    subprocess.run("taskkill /f /im explorer.exe & start explorer.exe", shell=True)
-                    self.log("SUCCESS", "Đã khôi phục Menu Chuột Phải Win 11 mặc định!")
-            elif module_name == "browser_backup":
-                if action == "open":
-                    return self.open_browser_backup_folder()
-                elif action == "backup":
-                    import modules.browser_backup as bb
-                    browsers = [b['key'] for b in bb.get_detected_browsers() if b['is_installed']]
-                    opts = {'bookmarks': True, 'passwords': True, 'history': True, 'extensions': False, 'full_profile': False}
-                    return self.backup_browsers(browsers, opts)
-                elif action == "restore":
-                    return {"success": False, "message": "Vui lòng chọn thư mục chứa bản sao lưu để phục hồi!"}
-            elif module_name == "datetime_tool":
-                return self.configure_datetime(action if action != "open" else "1click_fix", params)
-            elif module_name == "sendto_editor":
-                sendto_path = os.path.join(os.environ.get('APPDATA', ''), r'Microsoft\Windows\SendTo')
-                os.startfile(sendto_path)
-                self.log("SUCCESS", f"Đã mở thư mục SendTo: {sendto_path}")
-            else:
-                self.log("SUCCESS", f"Đã thực thi tác vụ {module_name} ({action})")
-
-            return {"success": True, "message": f"Đã hoàn thành {module_name}!"}
+            if module_name == 'win_update' and action in ('enable', 'disable'):
+                return self.set_windows_update(action == 'enable')
+            if module_name == 'firewall' and action in ('enable', 'disable'):
+                return self.set_firewall_action("enable_all" if action == "enable" else "disable_all")
+            if module_name == 'classic_menu' and action in ('enable', 'disable'):
+                return self.set_classic_menu_status(action == 'enable')
+            if module_name == 'bitlocker' and action in ('enable', 'disable') and params.get('drive'):
+                return self.set_bitlocker(params['drive'], action)
+            if module_name == 'browser_backup' and action == 'open':
+                return self.open_browser_backup_folder()
+            if module_name == 'sendto_editor' and action == 'open':
+                return self.open_sendto_folder()
+            return {"success": False, "message": "Tác vụ không được hỗ trợ; vui lòng dùng chức năng tương ứng trên giao diện."}
         except Exception as e:
-            self.log("ERROR", f"Lỗi chạy module {module_name}: {e}")
             return {"success": False, "message": str(e)}
 
     # ── SENDTO EDITOR API ─────────────────────────────────────────────────────
@@ -4207,74 +4024,16 @@ Write-Output "OK:$pinnedCount"
                         pass
             return False
 
-        if not target_path or not os.path.exists(target_path):
+        if not target_path or not os.path.isfile(target_path):
             return 0, 0
 
         if os.path.isfile(target_path):
             _clean_stream(target_path)
-        elif os.path.isdir(target_path):
-            for root, dirs, files in os.walk(target_path):
-                for fname in files:
-                    fp = os.path.join(root, fname)
-                    _clean_stream(fp)
-
         return scanned, unblocked
 
     def unblock_files_quick(self):
-        """Unblocks all files in standard user download & desktop directories and disables zone tagging."""
-        try:
-            import os
-            import subprocess
-            user_profile = os.environ.get("USERPROFILE", "")
-            target_dirs = []
-            for sub in ["Downloads", "Desktop", "Documents"]:
-                p = os.path.join(user_profile, sub)
-                if os.path.isdir(p):
-                    target_dirs.append(p)
-
-            # Check secondary drives if any
-            for d in [r"D:\Downloads", r"E:\Downloads"]:
-                if os.path.isdir(d) and d not in target_dirs:
-                    target_dirs.append(d)
-
-            total_scanned = 0
-            total_unblocked = 0
-            for d in target_dirs:
-                s, u = self._unblock_path_internal(d)
-                total_scanned += s
-                total_unblocked += u
-
-            # Apply Attachments Policy via registry to stop future blocking
-            try:
-                import winreg
-                for root_hkey in [winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE]:
-                    try:
-                        k = winreg.CreateKey(root_hkey, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments')
-                        winreg.SetValueEx(k, 'SaveZoneInformation', 0, winreg.REG_DWORD, 1)
-                        winreg.SetValueEx(k, 'HideZoneInfoOnProperties', 0, winreg.REG_DWORD, 1)
-                        winreg.CloseKey(k)
-                    except Exception:
-                        pass
-                subprocess.run('reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Attachments" /v SaveZoneInformation /t REG_DWORD /d 1 /f', shell=True, capture_output=True)
-            except Exception:
-                pass
-
-            if total_unblocked > 0:
-                msg = f"🎉 Đã quét {total_scanned} tệp và BỎ CHẶN THÀNH CÔNG {total_unblocked} tệp bị dán nhãn (Zone.Identifier) trong Downloads & Desktop!\n\nĐồng thời đã cấu hình hệ thống không chặn file tải về trong tương lai."
-                self.log("SUCCESS", msg)
-            else:
-                msg = f"✅ Đã quét {total_scanned} tệp trong Downloads, Desktop & Documents. Tất cả các tệp đều sạch (không bị dán nhãn Zone.Identifier).\n\nĐã kích hoạt cấu hình ngăn Windows chặn file tải về."
-                self.log("INFO", msg)
-
-            return {
-                "success": True,
-                "scanned": total_scanned,
-                "unblocked": total_unblocked,
-                "message": msg
-            }
-        except Exception as e:
-            self.log("ERROR", f"Lỗi Unblock Files: {e}")
-            return {"success": False, "message": f"Lỗi khi bỏ chặn file: {e}"}
+        """Bulk removal of download provenance is intentionally unavailable."""
+        return {"success": False, "message": "Đã tắt bỏ chặn hàng loạt. Chỉ chọn một tệp tin cậy để bỏ chặn; thao tác này không quét virus."}
 
     def unblock_files_custom(self):
         """Allows user to select a specific file or folder to unblock."""
@@ -4288,10 +4047,8 @@ Write-Output "OK:$pinnedCount"
 
             # First ask for file or folder
             target_path = filedialog.askopenfilename(
-                title="Chọn TỆP TIN cần Bỏ Chặn (Hoặc bấm Cancel/Hủy để chọn THƯ MỤC)"
+                title="Chọn một TỆP TIN tin cậy để bỏ chặn (không phải quét virus)"
             )
-            if not target_path:
-                target_path = filedialog.askdirectory(title="Chọn THƯ MỤC cần Bỏ Chặn toàn bộ tệp bên trong")
 
             root.destroy()
 
@@ -5579,7 +5336,7 @@ $res | ConvertTo-Json -Depth 3 -Compress
 
     def open_rdp_connection(self, ip=""):
         try:
-            target = ip.strip()
+            target = validate_host(ip)
             if not target:
                 return {"success": False, "message": "Địa chỉ IP không hợp lệ!"}
             self.log("INFO", f"Đang mở Remote Desktop (mstsc) kết nối đến {target}...")
@@ -5591,7 +5348,7 @@ $res | ConvertTo-Json -Depth 3 -Compress
 
     def open_smb_share(self, ip=""):
         try:
-            target = ip.strip()
+            target = validate_host(ip)
             if not target:
                 return {"success": False, "message": "Địa chỉ IP không hợp lệ!"}
             unc_path = f"\\\\{target}"
@@ -5608,9 +5365,7 @@ $res | ConvertTo-Json -Depth 3 -Compress
 
     def open_winrm_session(self, ip=""):
         try:
-            target = ip.strip()
-            if not target:
-                return {"success": False, "message": "Địa chỉ IP không hợp lệ!"}
+            target = validate_host(ip)
             self.log("INFO", f"Đang mở PowerShell Remoting (WinRM) đến {target}...")
             cmd = f'Write-Host "Dang ket noi PowerShell Remoting den {target} (WinRM)..." -ForegroundColor Cyan; Enter-PSSession -ComputerName "{target}"'
             subprocess.Popen(['powershell.exe', '-NoExit', '-Command', cmd])
@@ -6336,76 +6091,58 @@ $res | ConvertTo-Json -Depth 3 -Compress
             return {"success": False, "message": str(e), "services": [], "total": 0}
 
     def manage_windows_service(self, service_name, action):
-        """Starts, Stops, or Restarts a Windows service and waits for transition."""
-        if not service_name:
-            return {"success": False, "message": "Chưa chọn dịch vụ!"}
-
+        """Run explicit service commands and confirm each state transition."""
+        if not isinstance(service_name, str) or not service_name.strip() or any(c in service_name for c in '\0\r\n"/\\'):
+            return {"success": False, "message": "Tên dịch vụ không hợp lệ."}
+        if not isinstance(action, str) or action.lower() not in ('start', 'stop', 'restart'):
+            return {"success": False, "message": "Thao tác không hợp lệ."}
+        import psutil
+        import time
+        steps = ('stop', 'start') if action.lower() == 'restart' else (action.lower(),)
         try:
-            action_map = {
-                "start": f'sc start "{service_name}"',
-                "stop": f'sc stop "{service_name}"',
-                "restart": f'sc stop "{service_name}" & timeout /t 1 & sc start "{service_name}"'
-            }
-            cmd = action_map.get(action.lower())
-            if not cmd:
-                return {"success": False, "message": "Thao tác không hợp lệ!"}
-
-            self.log("INFO", f"Đang thực hiện {action} trên dịch vụ: {service_name}...")
-            res = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='utf-8', errors='ignore')
-
-            # Wait briefly for service transition to finish
-            target_status = "running" if action.lower() in ("start", "restart") else "stopped"
-            try:
-                import psutil, time
-                for _ in range(8):
-                    time.sleep(0.25)
-                    svc = psutil.win_service_get(service_name)
-                    if svc.status() == target_status:
+            for step in steps:
+                target = 'running' if step == 'start' else 'stopped'
+                result = subprocess.run(['sc.exe', step, service_name], capture_output=True, text=True,
+                                        encoding='utf-8', errors='replace', timeout=30)
+                # Already running/stopped still requires confirmation from SCM.
+                expected_code = 1056 if step == 'start' else 1062
+                if result.returncode not in (0, expected_code):
+                    return {"success": False, "message": result.stderr.strip() or result.stdout.strip() or f"sc.exe thất bại ({result.returncode})."}
+                status = 'unknown'
+                for _ in range(40):
+                    status = psutil.win_service_get(service_name).status()
+                    if status == target:
                         break
-            except Exception:
-                pass
-
-            if res.returncode == 0 or "SUCCESS" in res.stdout.upper() or "PENDING" in res.stdout.upper():
-                self.log("SUCCESS", f"Đã thực hiện {action} thành công trên dịch vụ '{service_name}'!")
-                return {"success": True, "message": f"Đã thực hiện {action} thành công trên dịch vụ '{service_name}'!"}
-            else:
-                alt_cmd = f'net {action} "{service_name}"' if action in ["start", "stop"] else None
-                if alt_cmd:
-                    r_alt = subprocess.run(alt_cmd, shell=True, capture_output=True, text=True, encoding='utf-8', errors='replace')
-                    if r_alt.returncode == 0:
-                        self.log("SUCCESS", f"Đã {action} dịch vụ '{service_name}' thành công!")
-                        return {"success": True, "message": f"Đã {action} dịch vụ '{service_name}' thành công!"}
-
-                return {"success": False, "message": f"Lỗi thực thi dịch vụ {service_name}: {res.stderr.strip() or res.stdout.strip()}"}
+                    time.sleep(0.25)
+                else:
+                    return {"success": False, "pending": True, "status": status,
+                            "message": f"Dịch vụ {service_name} chưa đạt trạng thái {target} (hiện tại: {status}). Hãy tải lại trạng thái."}
+            message = f"Đã {action} dịch vụ {service_name}; xác nhận trạng thái {target}."
+            self.log('SUCCESS', message)
+            return {"success": True, "status": target, "message": message}
         except Exception as e:
-            self.log("ERROR", f"Lỗi quản lý dịch vụ {service_name}: {e}")
+            self.log('ERROR', f'Lỗi quản lý dịch vụ {service_name}: {e}')
             return {"success": False, "message": str(e)}
 
     def set_service_startup_type(self, service_name, startup_type):
-        """Sets startup type for a Windows service (auto, demand/manual, disabled)."""
-        if not service_name or not startup_type:
-            return {"success": False, "message": "Thông tin không đầy đủ!"}
-
+        """Apply only a recognized startup type; preserve delayed automatic mode."""
+        if not isinstance(service_name, str) or not service_name.strip() or any(c in service_name for c in '\0\r\n"/\\'):
+            return {"success": False, "message": "Tên dịch vụ không hợp lệ."}
+        types = {'auto': 'auto', 'automatic': 'auto', 'automatic (delayed)': 'delayed-auto',
+                 'automatic (delayed start)': 'delayed-auto', 'delayed-auto': 'delayed-auto',
+                 'manual': 'demand', 'demand': 'demand', 'disabled': 'disabled'}
+        sc_type = types.get(startup_type.strip().lower()) if isinstance(startup_type, str) else None
+        if sc_type is None:
+            return {"success": False, "message": "Kiểu khởi động không hợp lệ."}
         try:
-            sc_type = "auto"
-            if "manual" in startup_type.lower() or "demand" in startup_type.lower():
-                sc_type = "demand"
-            elif "disabled" in startup_type.lower():
-                sc_type = "disabled"
-            elif "auto" in startup_type.lower():
-                sc_type = "auto"
-
-            cmd = f'sc config "{service_name}" start= {sc_type}'
-            self.log("INFO", f"Đang thay đổi kiểu khởi động {service_name} sang '{sc_type}'...")
-            res = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='utf-8', errors='ignore')
-
-            if res.returncode == 0 or "SUCCESS" in res.stdout.upper():
-                self.log("SUCCESS", f"Đã thay đổi kiểu khởi động dịch vụ '{service_name}' sang {sc_type} thành công!")
-                return {"success": True, "message": f"Đã thay đổi kiểu khởi động dịch vụ '{service_name}' sang {sc_type} thành công!"}
-            else:
-                return {"success": False, "message": f"Lỗi đổi kiểu khởi động (cần quyền Admin): {res.stderr.strip() or res.stdout.strip()}"}
+            result = subprocess.run(['sc.exe', 'config', service_name, 'start=', sc_type], capture_output=True,
+                                    text=True, encoding='utf-8', errors='replace', timeout=30)
+            if result.returncode != 0:
+                return {"success": False, "message": result.stderr.strip() or result.stdout.strip() or f"sc.exe thất bại ({result.returncode})."}
+            message = f"Đã đặt kiểu khởi động {service_name}: {sc_type}."
+            self.log('SUCCESS', message)
+            return {"success": True, "message": message}
         except Exception as e:
-            self.log("ERROR", f"Lỗi set startup type {service_name}: {e}")
             return {"success": False, "message": str(e)}
 
     def open_services_msc(self):
@@ -6623,6 +6360,10 @@ $res | ConvertTo-Json -Depth 3 -Compress
         """Opens specified web URL in user's default browser."""
         import webbrowser
         try:
+            from urllib.parse import urlsplit
+            parsed = urlsplit(url)
+            if parsed.scheme not in ('http', 'https') or not parsed.hostname:
+                raise ValueError('Chỉ cho phép liên kết HTTP/HTTPS.')
             webbrowser.open(url)
             return {"success": True}
         except Exception as e:
@@ -6639,19 +6380,6 @@ $res | ConvertTo-Json -Depth 3 -Compress
         import webbrowser
         webbrowser.open(APP_CONTACT_URL)
         return {"success": True}
-
-    def get_app_info(self):
-        """Returns author and application metadata."""
-        return {
-            "name": APP_NAME,
-            "version": APP_VERSION,
-            "author": APP_AUTHOR,
-            "email": APP_EMAIL,
-            "organization": APP_ORGANIZATION,
-            "upstream": APP_UPSTREAM,
-            "website": APP_WEBSITE,
-            "contact_url": APP_CONTACT_URL
-        }
 
     def get_logs(self):
         return self._logs
@@ -6760,3 +6488,7 @@ $res | ConvertTo-Json -Depth 3 -Compress
         except Exception as ex:
             return {"success": False, "message": str(ex)}
 
+
+    def open_fluent_cleaner(self):
+        from modules import fluent_cleaner
+        return fluent_cleaner.launch()
